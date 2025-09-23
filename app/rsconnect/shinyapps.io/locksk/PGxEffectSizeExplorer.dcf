@@ -1,0 +1,12 @@
+name: PGxEffectSizeExplorer
+title: PGxEffectSizeExplorer
+username: locksk
+account: locksk
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15517468
+bundleId:
+url: https://locksk.shinyapps.io/PGxEffectSizeExplorer/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

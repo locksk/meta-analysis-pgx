@@ -1,0 +1,12 @@
+name: PGxSMD
+title: PGxSMD
+username: locksk
+account: locksk
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15317093
+bundleId: 10845752
+url: https://locksk.shinyapps.io/PGxSMD/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
