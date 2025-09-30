@@ -9,7 +9,7 @@
 * file 3 - 
 * `/app` - directory containing files for the companion shiny app. This app will be hosted on [here](https://locksk.shinyapps.io/pgx-effect-sizes/). 
     * `R/app.R` - shiny app file (server + ui together)
-    * `R/functions.R` - helper functions for shiny app
+    * `R/functions.R` - helper functions for shiny app (also used in pgx-meta-analysis.html)
     * `R/data/all_smds.RData` - effect sizes generated from `calculate_SMDs.html` and used for analysis in  `pgx-meta-analysis.html`.
     * `R/www` - contains images used in shiny app.
 * `/scripts` - directory containing computationally intensive scripts (not run within the markdown). 
