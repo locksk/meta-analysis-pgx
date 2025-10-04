@@ -3,8 +3,8 @@
 
 
 ## Files
-* `pgx-meta-analysis.html` - rmd version of manuscript including all code for running of meta-analyses and associated methods. A version of this in .rmd format is available to download within the file. The live version of this file is located [here](https://locksk.github.io/pgx-effects/)
-* `calculate_SMDs.html` - contains methods and code for calculating the standardised mean difference (SMD) for all studies included in the meta-analysis. A version of this in .rmd format is available to download within the file. 
+* `pgx-meta-analysis.html` - rmd version of manuscript including all code for running of meta-analyses and associated methods. A version of this in .rmd format is also available in the repository. The live version of this file is located [here](https://locksk.github.io/pgx-effects/)
+* `calculate_SMDs.html` - contains methods and code for calculating the standardised mean difference (SMD) for all studies included in the meta-analysis. A version of this in .rmd format is also available in the repository. 
 * `all_results.xlsx` - containes reported effects (i.e., mean, median, observations, OR, beta, *t*) for studies included in the meta-analysis. These were used to calculate SMDs as described in `calculate_SMDs.html`.
 * file 3 - 
 * `/app` - directory containing files for the companion shiny app. The live version of the Shiny app is hosted [here](https://locksk.shinyapps.io/pgx-effect-sizes/). 
