@@ -7,7 +7,7 @@
 * `calculate_SMDs.html` - contains methods and code for calculating the standardised mean difference (SMD) for all studies included in the meta-analysis. A version of this in .rmd format is available to download within the file. 
 * `all_results.xlsx` - containes reported effects (i.e., mean, median, observations, OR, beta, *t*) for studies included in the meta-analysis. These were used to calculate SMDs as described in `calculate_SMDs.html`.
 * file 3 - 
-* `/app` - directory containing files for the companion shiny app. This app will be hosted on [here](https://locksk.shinyapps.io/pgx-effect-sizes/). 
+* `/app` - directory containing files for the companion shiny app. The live version of the Shiny app is hosted [here](https://locksk.shinyapps.io/pgx-effect-sizes/). 
     * `R/app.R` - shiny app file (server + ui together)
     * `R/functions.R` - helper functions for shiny app (also used in pgx-meta-analysis.html)
     * `R/data/all_smds.RData` - effect sizes generated from `calculate_SMDs.html` and used for analysis in  `pgx-meta-analysis.html`.
