@@ -1,0 +1,1835 @@
+---
+title: <center> <strong> Near, far, wherever you are - Phenotype-related variation in pharmacogenomic effect sizes across the psychiatric drug literature. </strong> </center>
+author: <center> <small> Siobhan Lock  </small> </center>
+date: <center> <small> `r format(Sys.Date(), format="%B %d %Y")` </small> </center>
+output: 
+  html_document:
+    css: "style.css"        
+    code_download: true 
+    code_folding: 'hide'
+    theme:
+      color-contrast-warnings: false
+      bg: "#EFEFEF"
+      fg: "#000"
+      primary: "#398235"
+      secondary: "#398235"
+      base_font:
+        google: Montserrat
+      heading_font:
+        google: Bungee
+      code_font:
+        google: "Roboto Mono"
+    highlight: pygments
+    
+---
+
+<style> 
+
+
+
+body {
+  max-width: 1920px;
+  margin-left: auto ;
+  margin-right: auto;
+}
+
+
+#header { 
+/* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#c9de96+0,8ab66b+44,398235+100;Green+3D+%233 */
+background: linear-gradient(to bottom,  #c9de96 0%,#8ab66b 44%,#398235 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+
+
+  color: #EFEFEF;
+  height: 400px;
+  padding: 15px;
+  }
+
+.main-container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+div.blue { background-color:#EFEFEF; border-radius: 20px; padding: 20px;}
+
+</style>
+
+<br>
+<br>
+
+```{r setup, warnings = FALSE, include=FALSE, fig.align='center'}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = TRUE, fig.align = "center", dev = "png", dev.args=list(bg="transparent")) 
+options(knitr.kable.NA = '')
+#options(scipen = 0)
+#options(digits = 3)
+
+library(tidyverse)
+library(ggplot2)
+library(metafor)
+library(clubSandwich)
+library(data.table)
+library(ggplotify)
+library(esc)
+library(kableExtra)
+library(pwr)
+library(gsubfn)
+library(gtsummary)
+library(orchaRd)
+library(emmeans)
+library(ape)
+library(phytools)
+library(flextable)
+library(R.rsp)
+library(flexmix)
+library(cowplot)
+
+set.seed(666)
+
+pal <- c("#43919c", "#e4959a", "#519E8A", "#edeee2")
+
+source("functions.R")
+load("all_smds.RData")
+
+og <- all_smd
+
+all_smd <- all_smd %>% filter(SMD < 5 & SMD > -5) 
+
+l1 <- readxl::read_xlsx(path = "archives.xlsx", sheet = 2)
+l2 <- readxl::read_xlsx(path = "archives.xlsx", sheet = 3)
+
+```
+
+
+
+# Near, far, wherever you are: Phenotype-related variation in pharmacogenomic effect sizes across the psychiatric drug literature. {.tabset}
+
+<br>
+
+**Siobhan K. Lock, Djenifer B. Kappel, Jude Hutton, Emily Simmonds, Sophie E. Legge, Michael C. O'Donovan, and <a href = "mailto: PardinasA@cardiff.ac.uk"> Antonio .F. Pardiñas </a> **
+
+<br>
+
+**Background:** Pharmacogenomics is viewed as one route to minimising inter-individual variability in drug response. However, uptake in psychiatry is slower than in other medical fields, so assessing evidence for psychiatric genotype-drug pairs and understanding what influences the magnitude of these effects is essential.
+
+**Methods:** We performed a systematic search for studies investigating pharmacogenomic variation in the context of antipsychotic and antidepressant use. Outcomes varied, including those related to drug bioavailability (“proximal”) or side effects, symptom severity, and other treatment outcomes (“distal”). We performed a meta-analysis moderated by outcome type to quantify the average pharmacogenomic effect size across proximal and distal outcomes and assess whether they differ from one another. We developed a [companion dashboard](https://locksk.shinyapps.io/pgx-effect-sizes/) that allows users to explore the dataset and perform simplified meta-analyses, power calculations, and Bayesian shrinkage analyses based on drugs, enzymes, and outcomes of interest.
+
+**Results:** We analysed 2,102 standardised mean differences (SMDs) from 184 studies, finding evidence that pharmacogenomic effect sizes for proximal outcomes were significantly larger than distal (Δβ = -0.203 [95% CI -0.288 – -0.118], p = 6x10⁻⁶). This trend was consistent across sub-groups restricted to the most common gene-drug pairings in the dataset. Power calculations for hypothetical future studies using two-sample *t*-tests showed that, to attain at least 80% statistical power, analyses of distal outcomes require a larger sample size than proximal outcomes.  
+
+**Discussion:** We demonstrate that pharmacogenomic effect sizes are significantly larger for proximal outcomes related to pharmacokinetics than for distal outcomes related to efficacy and toxicity. Understanding how the biological mechanisms underlying different outcomes might impact pharmacogenomic effect sizes could help to inform participant recruitment for future psychiatric pharmacogenomic studies, alongside the development of pharmacogenomic guidelines for psychiatric medications.
+
+**Funding:** This work was supported by a PhD studentship from Mental Health Research UK (SKL). Authors were also supported by grants from the Medical Research Council (SEL, MCOD, AFP; MR/Y004094/1 and MR/Z503745/1), the European Union’s Horizon 2020 programme (DBK, MCOD, AFP; #964874), the European Union’s Horizon 2021 programme (AFP, #101057454), and the Dementia Research Institute (ES; UKDRI supported by the Medical Research Council (UKDRI-3206), Alzheimer’s Research UK, and Alzheimer’s Society).
+
+**Acknowledgements:** We would like to thank Peter A. Holmans for critical feedback on the manuscript.
+
+
+<br>
+<br>
+<br>
+
+
+## <strong> Introduction </strong>
+
+
+### Introduction
+
+The effects of most licensed therapeutic drugs vary even when prescribed to individuals for the same indication. Moreover, real-world effectiveness often falls below the expectations set by clinical trials, an “efficacy-effectiveness gap” that pervades medicine (Eichler et al., 2011). Pharmacological effects can lead to huge benefits for some individuals, be barely noticeable for others, and for a few even cause a net negative impact through adverse drug reactions (ADRs). Problems with the external validity of randomised controlled trials, diverse healthcare and drug use practices, or patient-level variation in drug response are all likely contributors to the gap (Groenwold, 2021). In psychiatry, where “treatment resistant” symptoms affect a large proportion of patients (Howes et al., 2022), these issues have been systematically raised and examined. While there is no evidence that common psychotropics or even psychotherapy interventions are less efficacious than drugs prescribed for non-psychiatric conditions (Leucht et al., 2012; Huhn et al., 2014), the development and refinement of psychiatric drugs is notoriously slow compared to other fields (Nutt, 2025), partly because many mechanisms of action involved in psychopharmacology and their precise effect on disease processes and neurobiology remain unclear (Huda, 2019; Howes et al., 2022). 
+
+Substantial efforts in psychiatric research are dedicated to more accurately predicting treatment response to current drugs, with aims of eventually lessening the efficacy-effectiveness gap (Dellen, 2024). One route to accomplishing this task is stratified medicine or “precision psychiatry”, which involves identifying patient subgroups with respect to their characteristics or response to drugs (Bell, 2014). While a myriad of factors (e.g., environmental, physiological, genomic) are known to affect treatment response in psychiatry (Stern et al., 2018), genetic variation is of particularly strong interest for developing stratified approaches as it is identifiable and stable from birth. Which genetic variants affect response to drugs, and whether they influence pharmacokinetic or pharmacodynamic processes, is the topic of study of pharmacogenomics (Pirmohamed and Park, 2001). Advances in this field have led to algorithms, developed by expert groups (Klein and Ritchie, 2018) or industry (Behera et al., 2025), that can inform screening for haplotypes known to influence the activity of drug metabolising enzymes (classically termed “star alleles”), and infer how carriers might respond to a given drug. While the research sustaining the psychiatric arm of this discipline has seen a large growth in activities in recent years, and an increasing number of prospective trials are being funded, most promising results are still confined to the scientific literature and have not yet been translated into clinical interventions (Bousman et al., 2023a). 
+
+Translational efforts need to be based on robust research evidence, and pharmacogenomics has a number of international expert consortia routinely assessing any pharmacogenomic reports linked to licensed drugs (Whirl-Carrillo et al., 2021). Indeed, for many drug-gene pairs, pharmacogenomic effects have been investigated broadly, from simple molecular processes to complex patient-reported outcomes. While any of these reports could be used by regulators in deciding whether to recommend an implementation of pharmacogenomic testing (Wu, 2015), genetic evidence related to pharmacodynamic phenotypes such as drug response and ADRs tends to be considered the most likely to lead to a clinically useful and cost-effective intervention (Hughes, 2018). 
+
+This perception is worth emphasising. In psychiatry, robust associations of pharmacogenomic variants with pharmacodynamic outcomes are rare, and pharmacogenomic guidelines for psychotropics are mostly based on studies of drug metabolism and other indicators of drug pharmacokinetics (Bousman et al., 2020). A potential explanation for this asymmetry is that, outside of severe ADRs, pharmacodynamic phenotypes seem akin to complex traits. They are multifactorial, polygenic, and require large samples for accurately estimating genetic effects, given these are often weak (Roden et al., 2019). In contrast, pharmacokinetic phenotypes seem to fit oligogenic inheritances with moderate-to-high heritabilities, and are therefore more tractable for genetic discovery studies (Roden et al., 2006; Ingelman-Sundberg and Molden, 2025). This echoes classic discussions in psychiatry about the use of “endophenotypes”: quantitative measures of biological processes relevant to psychiatric disorders that show stronger associations with genetic variants than the disorders themselves (Gottesman and Gould, 2003). Endophenotypes are meant to be surrogates of some of the elements that characterise multifactorial disorders, in the same way that pharmacokinetic processes are important drivers of pharmacodynamics, but not the only ones (Simon and von Fabeck, 2025). This implies the expectation that the effects of any given genetic variant are largest on phenotypes that closely reflect the biological processes that it directly causes or moderates. On the other hand, effect sizes become diluted as phenotypes move further away from basic molecular mechanisms and become influenced by other factors, genetic and otherwise. Indeed, in an analysis of genome-wide association studies from 2005-2014, the median odds ratio for associations between genetic variants and complex disease phenotypes was smaller than between genetic variants and endophenotypes, drug efficacy or ADRs (Maranville and Cox, 2016).
+
+In this paper, we aim to quantify effects of pharmacogenomic variation through this framework, initially postulated in research on metabolic control (Kacser and Burns, 1981). Borrowing from the “proximal-distal continuum” concept of health outcomes research (Brenner et al. 1995), we term “proximal outcomes” as those based on quantitative biological measures, which tend to be mechanistically closer to genetic variation. On the other end, “distal outcomes” are those usually captured by clinical phenotyping, being often further away from any single genetic effect and subject to multifactorial influences. We implemented this classification on a series of meta-analyses of pharmacogenomics reports focused on enzymes important to the metabolism of antidepressant and antipsychotic drugs (i.e., the cytochrome P450, or CYP, family of enzymes). While this literature is necessarily heterogeneous, investigating many drugs, enzymes, and outcomes, our aim was to curate a corpus of data that can be used for diverse applications, including the design and interpretation of psychiatric pharmacogenomic studies. If indeed genetic effects differ between proximal and distal outcomes, identifying even a wide range of plausible effect sizes for each category could assist with accurately estimating the statistical power of future basic and translational research (Huang et al., 2020), as well as flagging potential errors or biases in existing studies (Gelman and Carlin, 2014)
+ 
+
+
+<br>
+<br>
+<br>
+<br>
+
+## <strong> Methods </strong> 
+### Methods
+
+#### Literature Search
+
+We searched PUBMED, Cochrane, and SCOPUS databases for literature published between 1996 (when standardised pharmacogenomic nomenclature was introduced) and November 2024. Briefly, the search looked across titles for the following key terms in the format [pharmacogenomic term] AND [drug term] AND [outcome term] AND NOT [‘review’ / ‘guidelines’]. The full list of search terms is found in the **Supplementary Materials**. Records returned from the three databases were combined, and duplicate entries were removed (**Figure 1**).  
+
+<br>
+
+#### Study Selection
+
+We compiled studies investigating associations of genotype-based pharmacogenomic variables with a range of outcomes in individuals taking psychiatric drugs. Broadly, these outcomes included measures of drug or metabolite bioavailability or clearance, drug doses, and measures of clinical response or ADRs (**Table 1**). We focussed on pharmacogenomic variation (i.e., genetics-inferred metabolism phenotypes, pharmacogenomic star alleles) in the CYP family of proteins given their role in the metabolism of many widely prescribed drugs (Zhao et al., 2021), including most psychotropics (Spina and de Leon, 2015). 
+
+Titles and abstracts were screened first to determine eligibility based on fit to the research topic of this study. For reports passing this screening, we retrieved the full text and supplementary material if available. After full text inspection, we included reports in our analyses that were (i) original research articles, (ii) in English language, or able to be translated without ambiguities by the authors, (iii) were methodologically relevant, (iv) investigated an outcome, enzyme, or drug of interest, and (v) contained sufficient information to extract or infer effect sizes (see “Statistical Analysis”). We excluded studies conducted *in vitro*, using population modelling, or investigating drug-drug interactions. Studies in which pharmacogenomic information was not used (i.e., phenotyping by probe drug) or those investigating combinatorial metabolism phenotypes were also excluded. Where effect size information was shown graphically but was not explicitly mentioned in the report text, it was extracted from plots using a free online application (PlotDigitizer: Version 3.1.6, 2025). Finally, we also examined the reference lists of included studies for any relevant work that might have been missed by the initial literature search and screened these references as above (**Figure 1**).
+
+
+
+```{r fig 1, fig.align='center', out.width="80%", fig.cap= "Figure 1. Flowchart showing the number of records identified from the literature search, the numbers following screening, retrieval, and finally, the number of records included in the final analysis. Flowchart template was adapted from the Preferred Reporting Items for Systematic reviews and Meta-Analyses (PRISMA; Moher et al. 2010)."}
+
+knitr::include_graphics("Writing/figs/PRISMA Fig 1 transparent.png")
+```
+
+<br>
+
+#### Statistical Analysis
+
+Data were analysed in R v4.4.0 in R Studio 2024.04.0 Build 735 (R Core Team, 2021). Based on the information available in the eligible reports, we derived standardised mean differences (SMDs). In the context of this study, SMDs refer to the difference in effect between a group of individuals with an atypical CYP metabolism phenotype versus a normal metabolism phenotype. We also extracted SMDs for the effects of individual pharmacogenomic variants against wild-type alleles when these were reported. To calculate SMDs, group means and standard deviations were the preferred inputs. Where median and (interquartile) ranges were reported, approximate means and standard deviations were calculated using methods outlined by Wan et al. (2014). These were converted to SMDs using the *esc* ‘effect size conversion’ R package (Lüdecke, 2018). Other data reported (e.g., number of observations, Odds Ratios, and *t* statistics, in order of preference) were converted using the *esc* package. Full information about these calculations is provided in the **Supplementary Materials**. 
+
+Additional details that were extracted from each report included: authors, year of publication, drug, enzyme, assessed outcome, and pharmacogenomic information. Where possible, pharmacogenomic information was extracted as metabolism phenotypes, or alternatively converted to them using on PharmGKB and CPIC reference tables (**Supplementary Materials**). When conversion was not possible, information was left in the same format as reported. For classifying outcomes, a binary variable was created, as described in **Table 1**. In summary, pharmacokinetic outcomes (e.g., relating to bioavailability or clearance of a drug or metabolite) were rated as “proximal”. Outcomes were alternatively labelled “distal” if they related to pharmacodynamics or potential consequences of altered metabolism; these included, for example, reports of drug doses, experiences of adverse drug reactions (ADRs), or ratings of symptom severity.  
+
+<br>
+
+| **Proximal Outcomes**                                                           | **Distal Outcomes**                                                                                    |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Active moiety pharmacokinetics (e.g., concentration, half-life, clearance, AUC) | Adverse Drug Reactions                                                                                 |
+| Drug pharmacokinetics (e.g., concentration, half-life, clearance, AUC)          | Drug dose                                                                                              |
+| Metabolite pharmacokinetics (e.g., concentration, half-life, clearance, AUC)    | Treatment outcomes (e.g., remission, hospitalisation, treatment discontinuation, medication switching) |
+| Metabolic ratios                                                                | Symptom severity                                                                                       |
+Table 1. Examples of phenotypes included in the meta-analyses and whether they were rated as proximal or distal outcomes.
+
+
+```{r create subgroup datasets}
+# only risperidone
+ris_smd <- dplyr::filter(all_smd, drug_id == "risperidone" & enzyme == "CYP2D6") # n = 415
+
+# only escitalopram 
+esc_smd <- dplyr::filter(all_smd, drug_id == "escitalopram" & enzyme == "CYP2C19") # n = 218
+
+# only aripiprazole
+ari_smd <- dplyr::filter(all_smd, drug_id == "aripiprazole" & enzyme == "CYP2D6") # n = 123
+
+# only haloperidol
+hal_smd <- dplyr::filter(all_smd, drug_id == "haloperidol" & enzyme == "CYP2D6") # n = 103
+```
+
+Our primary analysis utilised the full set of calculated effect sizes. To account for heterogeneity between drugs, enzymes, and pharmacogenomic measures analysed, we used absolute effect sizes as the outcome variable, and the outcome binary rating (i.e., proximal/distal) as the moderator variable. We included a random intercept for effect size ID, and study ID, and a random slope for the moderator, with an unstructured variance-covariance matrix. As a sensitivity analysis, we repeated the primary meta-analysis on gene-drug subgroups to determine whether findings relating to proximal and distal effect sizes were replicable across subsets of the data. Gene-drug pairings with at least one hundred effect sizes were selected, including CYP2D6-risperidone (N = `r nrow(ris_smd)`), CYP2C19-escitalopram (N =  `r nrow(esc_smd)`), CYP2D6-aripiprazole (N = `r nrow(ari_smd)`), and CYP2D6-haloperidol (N = `r nrow(hal_smd)`). For these analyses, we used a simplified random effects structure of effect size ID nested within study ID.
+
+As a secondary analysis, we tested for whether the outcome phenotype (“proximal” or “distal”) influenced the effects of genetics-inferred enzyme activity across distinct metabolism phenotypes. This analysis included only effect sizes for which pharmacogenomic information was available as, or could be converted to, metabolism phenotypes. We extended the primary meta-analysis model to include an interaction term between rating and metabolism phenotype as the moderators, keeping the same random-effects structure. Comparisons between estimates of metaboliser phenotype effect sizes were performed using Wald-type tests. Holm’s method was used to correct for multiple comparisons. 
+
+We used *metafor* (Viechtbauer, 2010) to fit multi-level, multivariate meta-analyses. In all analyses, we used a three-level correlated and hierarchical effects model. To account for dependency in our data, we imputed a variance-covariance matrix in *metafor* with positive correlations between clusters of effects (ρ = 0.6). We also performed robust variance estimation based on the *clubSandwich* package (Pustejovsky, 2024) to further account for this dependency via a sandwich estimator with bias reduced-linearisation for small-sample correction. We tested models using different random effect structures, alongside different parameters of ρ to assess how these affected our analysis, also using profile likelihood plots to assess parameter identifiability and potential model over-parametrisation (see *Supplementary Materials*). We fit two meta-analyses, one without the intercept to attain effect estimates for both proximal and distal outcomes, and one with an intercept to test whether proximal and distal effect estimates are significantly different. Finally, due to concerns that assessing traditional funnel plots using the SMD can lead to false positives when checking for publication bias, we additionally plot the SMD against 1/√N (Zwetsloot et al., 2017). We formally tested for publication bias using an adjusted version of Egger’s Test that accounts for the multi-level nature of the data, also using 1/√N in place of the standard error moderator (Rodgers and Pustejovsky, 2021).  
+
+<br>
+
+#### Applications
+
+We conducted power analyses using *pwr* (Champely, 2020) to assess how sample sizes required to attain 80% power in pharmacogenomics research vary depending on the phenotype assessed. Effect sizes used were the proximal and distal effect estimates obtained from the primary meta-analysis and their robust 95% confidence intervals. 
+
+We also used the SMDs generated as part of this meta-analysis to model the potential inflation across effect sizes for proximal and distal outcomes (i.e., winner’s curse; Zöllner and Pritchard 2007). As described in the **Supplementary Material**, results from our models can be used as prior distributions to generate posterior bias-reduced estimates of pharmacogenomic effects in existing and future studies.
+
+Finally, we developed an interactive dashboard allowing users to filter, browse, visualise, and download data collected for this meta-analysis. This allows interested readers to access the effect size data in a user-friendly manner, alongside acting as a resource to help researchers to plan their future studies into pharmacogenomic variation and psychiatric medicine through a basic power calculation. The dashboard also allows users to fit three-level correlated and hierarchical effects meta-analyses on the filtered data to allow for an initial assessment of the pooled effect sizes for genes, drugs, and enzymes of interest. The dashboard was built using the R *shiny* package (Chang et al., 2025). 
+
+
+
+<br>
+<br>
+<br>
+<br>
+
+
+## <strong> Results </strong> 
+### Results
+
+This meta-analysis was performed in line with the Preferred Reporting Items for Systematic reviews and Meta-Analyses (PRISMA; Moher et al. 2010) guidelines (**Supplemental Materials**). **Figure 1** describes how the final list of studies was ascertained. 
+
+Briefly, we identified and screened for eligibility 6,129 entries from the literature search, of which 386 full texts were selected to be assessed for inclusion. Following this, we identified an additional 257 records from citation searching, of which 168 were selected to have full texts assessed for inclusion. In total, we calculated `r nrow(og)` effect sizes for `r length(unique(og$Study))` studies (N = `r nrow(filter(l1, Extracted == 1))` from the literature search; N = `r nrow(filter(l2, Extracted == 1))` from citation searching).  After excluding extreme values (SMD >= 5 or SMD <= -5), `r nrow(all_smd)` effect sizes from `r length(unique(all_smd$Study))` studies remained. 
+
+Over half (`r round((nrow(filter(all_smd, geo == "Europe")) / nrow(all_smd)) * 100)`%) of analyses were performed on samples recruited in European countries, with the next largest group (`r round((nrow(filter(all_smd, geo == "Asia")) / nrow(all_smd)) * 100)`%) coming from Asian countries. The most frequently studied drugs were risperidone (`r round((nrow(filter(all_smd, drug_id == "risperidone")) / nrow(all_smd)) * 100)`%) and escitalopram (`r round((nrow(filter(all_smd, drug_id == "escitalopram")) / nrow(all_smd)) * 100)`%). The most studied enzymes were CYP2D6 (`r round((nrow(filter(all_smd, enzyme == "CYP2D6")) / nrow(all_smd)) * 100)`%) and CYP2C19 (`r round((nrow(filter(all_smd, enzyme == "CYP2C19")) / nrow(all_smd)) * 100)`%). There were similar numbers of proximal (`r round((nrow(filter(all_smd, pdr == 1)) / nrow(all_smd)) * 100)`%) and distal (`r round((nrow(filter(all_smd, pdr == 2)) / nrow(all_smd)) * 100)`%) outcomes across the analyses. A full description of the dataset is found in **Table 2**, below.
+
+
+```{r descriptive table 2 v2}
+pt1 <- tbl_summary(include = c(rating, geo, drug_type, enzyme_type, mp), data = all_smd, 
+                 statistic = list(all_categorical() ~ "{n} ({p}%)"), digits =  all_continuous() ~ 1, 
+                 label = list(rating ~ "Outcome", geo ~ "Continent", drug_type ~ "Drug Studied", enzyme_type ~ "Enzyme Studied", mp ~ "Metabolism Phenotype")) %>%
+  modify_header(label = "Variable", stat_0 = "N (effect sizes) (%)") 
+
+pt1 <-as.data.frame(pt1)
+
+# outcome
+df <- all_smd %>% filter(rating=="Proximal")
+a1 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(rating=="Distal")
+a2 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+#pad <- c(NA,NA,NA,NA)
+out1 <- rbind(a1, a2)
+out1$Variable <- c("Proximal", "Distal")
+out1$nsp <- paste0(round(c((out1$ns[1]/sum(out1$ns)*100), (out1$ns[2]/sum(out1$ns)*100)),0),"%")
+
+# continent
+df <- all_smd %>% filter(geo=="Asia")
+a1 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(geo=="Europe")
+a2 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(geo=="Mixed")
+a3 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(geo=="North America")
+a4 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(geo=="Oceania")
+a5 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(geo=="South America")
+a6 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(geo=="Africa")
+a7 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+
+#pad <- c(NA,NA,NA,NA)
+out2 <- rbind(a1,a2,a3,a4,a5,a6,a7)
+out2$Variable <- c("Asia", "Europe", "Mixed", "North America", "Oceania","South America", "Africa")
+out2$nsp <-  paste0(round(c((out2$ns[1]/sum(out2$ns)*100), (out2$ns[2]/sum(out2$ns)*100), (out2$ns[3]/sum(out2$ns)*100), (out2$ns[4]/sum(out2$ns)*100), (out2$ns[5]/sum(out2$ns)*100), (out2$ns[6]/sum(out2$ns)*100), (out2$ns[7]/sum(out2$ns)*100)),0),"%")
+
+
+# drug studied
+df <- all_smd %>% filter(drug_type=="Antidepressant")
+a1 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(drug_type=="Antipsychotic")
+a2 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(drug_type=="Unknown/Multiple")
+a3 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+#pad <- c(NA,NA,NA,NA)
+
+out3 <- rbind(a1, a2,a3)
+out3$Variable <- c("Antidepressant", "Antipsychotic", "Unknown/Multiple")
+out3$nsp <-  paste0(round(c((out3$ns[1]/sum(out3$ns)*100), (out3$ns[2]/sum(out3$ns)*100), (out3$ns[3]/sum(out3$ns)*100)),0),"%")
+
+
+# enzyme studied
+df <- all_smd %>% filter(enzyme_type=="CYP1A2")
+a1 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(enzyme_type=="CYP2B6")
+a2 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(enzyme_type=="CYP2C9")
+a3 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(enzyme_type=="CYP2C19")
+a4 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(enzyme_type=="CYP2D6")
+a5 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(enzyme_type=="CYP3A4/5")
+a6 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+
+out4 <- rbind(a1,a2,a3,a4,a5,a6)
+out4$Variable <- c("CYP1A2", "CYP2B6", "CYP2C9", "CYP2C19", "CYP2D6","CYP3A4/5")
+out4$nsp <-  paste0(round(c((out4$ns[1]/sum(out4$ns)*100), (out4$ns[2]/sum(out4$ns)*100), (out4$ns[3]/sum(out4$ns)*100), (out4$ns[4]/sum(out4$ns)*100), (out4$ns[5]/sum(out4$ns)*100), (out4$ns[6]/sum(out4$ns)*100)),0),"%")
+
+# metabolism phenotype
+df <- all_smd %>% filter(mp=="IM")
+a1 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(mp=="PM")
+a2 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(mp=="RM")
+a3 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(mp=="UM")
+a4 <- data.frame(mean_smd  = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+df <- all_smd %>% filter(is.na(mp))
+a5 <- data.frame(mean_smd = mean(df$SMD, na.rm = T), mean_abs = mean(df$absmd, na.rm = T), ns = length(unique(df$Study)), nk = nrow(df)) %>% round(digits = 3)
+
+out5 <- rbind(a1,a2,a3,a4,a5)
+out5$Variable <- c("IM", "PM", "RM", "UM", "Unknown")
+out5$nsp <- paste0(round(c((out5$ns[1]/sum(out5$ns)*100), (out5$ns[2]/sum(out5$ns)*100), (out5$ns[3]/sum(out5$ns)*100), (out5$ns[4]/sum(out5$ns)*100), (out5$ns[5]/sum(out5$ns)*100)), 0),"%")
+
+pt2 <- rbind(out1,out2,out3,out4, out5)
+pt2$n_sp <- paste0(pt2$ns, " (", pt2$nsp,")")
+pt2 <- dplyr::select(pt2, c("Variable", "n_sp", "mean_smd", "mean_abs"))
+
+out <- left_join(pt1, pt2, by = "Variable")
+colnames(out) <- c("Variable", "N (effect sizes) (%)", "N (studies) (%)", "Mean SMD", "Mean abs(SMD)")
+
+
+kbl(out, caption = "
+Table 2. Descriptive information about the analyses included in the effect size data. For each variable, number of studies and effect sizes are reported . The mean of the Standardised Mean Difference (SMD) and absolute Standardised Mean Difference (abs(SMD)) for each group are also given." ) %>% kable_paper(bootstrap_options = "striped", full_width = F) %>%
+  add_indent(c(2:3,5:11,13:15,17:22,24:28))
+
+
+     # gt::tab_options(table.background.color = "#EFEFEF")  %>% modify_caption("")
+```
+
+<br>
+<br>
+
+#### Meta-Analysis of Proximal and Distal Outcomes
+
+```{r main analysis}
+# calculate the vcov matrix
+V <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = all_smd)
+
+# fit correlated and hierarchical effects model
+meta.all <- rma.mv(absmd ~ 0 + rating, 
+                    V = V,
+                    random = list(~ rating | Study, ~ 1 | es_id), struct = "UN",
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = all_smd,
+                    sparse = TRUE)
+
+meta.all <- robust(meta.all, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+out.all <- data.frame(Outcome = c("Proximal", "Distal"),
+                      Estimate = c(meta.all$b[1], meta.all$b[2]),
+                      SE = c(meta.all$se[1], meta.all$se[2]),
+                      'p value' = c(meta.all$pval[1], meta.all$pval[2])
+                      )
+                
+# difference 
+meta.all.i <- rma.mv(absmd ~ rating, 
+                    V = V,
+                    random = list(~ rating | Study, ~ 1 | es_id), struct = "UN",
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = all_smd,
+                    sparse = TRUE)
+
+
+meta.all.i <- robust(meta.all.i, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+result_text <- paste0("(Δβ = ", round(meta.all.i$beta[2], 3), " [95% CI ", round(meta.all.i$ci.lb[2], 3), " — ", round(meta.all.i$ci.ub[2], 3), "], <i>p</i> = ", format_p(meta.all.i$pval[2]))
+```
+
+As shown in **Figure 2**, we found evidence for a significant effect of pharmacogenomic variation on proximal (β = `r round(meta.all$beta[1], 3)` [95% CI `r round(meta.all$ci.lb[1], 3)` – `r round(meta.all$ci.ub[1], 3)`], *p* = `r format_p(meta.all$pval[1])`) and distal outcomes (β = `r round(meta.all$beta[2], 3)` [95% CI `r round(meta.all$ci.lb[2], 3)` – `r round(meta.all$ci.ub[2], 3)`], *p* = `r format_p(meta.all$pval[2])`). The intercept model showed that the proximal effect size was indeed significantly larger than the distal effect estimate (Δβ = `r round(meta.all.i$beta[2], 3)` [95% CI `r round(meta.all.i$ci.lb[2], 3)` – `r round(meta.all.i$ci.ub[2], 3)`], *p* = `r format_p(meta.all.i$pval[2])`). Most of the variance in our dataset was at a within-study level (σ^2^ = `r round(meta.all$sigma2, 3)`). Between-study variance was larger for proximal outcomes (τ^2^ = `r round(meta.all$tau2[1], 3)`), than for distal outcomes (τ^2^ = `r round(meta.all$tau2[2], 3)`).
+
+<br> 
+
+```{r main analysis plot, warning = FALSE, echo=FALSE, message=FALSE, results='hide', fig.align='center', fig.cap="Figure 2. Orchard plot (Nakagawa et al., 2021) showing the distribution of effect sizes (Standardised Mean Difference, SMD) across proximal and distal outcomes. Size of points is determined by a sample-size based measure of precision (1/√N). Pooled estimates for proximal and distal effect sizes are represented by the black diamond, with error bars representing robust 95% confidence intervals (thick) and 95% prediction intervals (thin); see IntHout et al., (2016) for more information. Number of effect sizes is represented by k, with number of studies in brackets. Note that while an absolute scale was used for the effect sizes included in the meta-analysis, we used the standard procedures for calculating prediction intervals, in which the lower bound is not limited at zero."}
+
+meta.res.all <- orchaRd::mod_results(meta.all, mod = "rating", group = "Study", N = "Total_N" )
+custom_orchard_plot(meta.res.all, mod = "ratings", group = "Study", xlab = "Standardised mean difference", N = "Total_N",
+                        k.pos = "right", branch.size = 2, trunk.size = 1, twig.size = 1, alpha = .2) +
+  scale_color_manual(values = c( "#e4959a", "#43919c")) + 
+  scale_fill_manual(values = c( "#e4959a", "#43919c")) + 
+    annotate("text", label = paste0("Robust 95% Confidence Intervals [", round(meta.all$ci.lb, 3)[1], ", ",  round(meta.all$ci.ub, 3)[1], "]"), x = 0.95, y = 3.5) + 
+    annotate("text", label = paste0("95% Prediction Intervals [", round(meta.res.all$mod_table$lowerPR, 3)[1], ", ",  round(meta.res.all$mod_table$upperPR, 3)[1], "]"), x = 0.87, y = 3.8) + 
+      annotate("text", label = paste0("Robust 95% Confidence Intervals [", round(meta.all$ci.lb, 3)[2], ", ",  round(meta.all$ci.ub, 3)[2], "]"), x = 1.95, y = 3.5) +
+      annotate("text", label = paste0("95% Prediction Intervals [", round(meta.res.all$mod_table$lowerPR, 3)[2], ", ",  round(meta.res.all$mod_table$upperPR, 3)[2], "]"), x = 1.87, y = 3.8) +
+  theme_minimal() +
+      theme(axis.title = element_text(colour = "#474044", size = 14),
+            axis.text.x = element_text(colour = "#474044", size = 11),
+            axis.text.y = element_text(colour = "#474044", size = 11, hjust = 0.5),
+            axis.ticks = element_line(colour = "#474044"),
+            plot.title = element_text(colour = "#474044"),
+            plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+
+```
+
+<br>
+<br>
+
+#### Sensitivity Analyses: Across Gene-Drug Pairings 
+
+```{r all gene-drug subgrops analyses}
+Vris <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = ris_smd)
+
+# fit correlated and hierarchical effects model
+meta.ris <- rma.mv(absmd ~ 1 + rating, 
+                    V = Vris,
+                    random = list(~ 1 | Study / es_id),
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = ris_smd,
+                    sparse = TRUE)
+
+meta.ris <- robust(meta.ris, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+Vesc <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = esc_smd)
+
+# fit correlated and hierarchical effects model
+meta.esc <- rma.mv(absmd ~ 1 + rating, 
+                    V = Vesc,
+                    random = list(~ 1 | Study / es_id),                   
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = esc_smd,
+                    sparse = TRUE)
+
+meta.esc <- robust(meta.esc, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+Vari <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = ari_smd)
+
+# fit correlated and hierarchical effects model
+meta.ari <- rma.mv(absmd ~ 1 + rating, 
+                    V = Vari,
+                    random = list(~ 1 | Study / es_id),                   
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = ari_smd,
+                    sparse = TRUE)
+
+meta.ari <- robust(meta.ari, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+Vhal <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = hal_smd)
+
+# fit correlated and hierarchical effects model
+meta.hal <- rma.mv(absmd ~ 1 + rating, 
+                    V = Vhal,
+                    random = list(~ 1 | Study / es_id),
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = hal_smd,
+                    sparse = TRUE)
+
+meta.hal <- robust(meta.hal, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+```
+
+We repeated the primary analysis in subgroups restricted to the most common gene-drug pairings (i.e., those with at least 100 analyses available). We observed that proximal effect sizes were significantly larger than distal effect sizes in the Risperidone-CYP2D6 group (Δβ = `r round(meta.ris$beta[2], 3)` [95% CI `r round(meta.ris$ci.lb[2], 3)` – `r round(meta.ris$ci.ub[2], 3)`], *p* = `r format_p(meta.ris$pval[2])`) and the Aripiprazole-CYP2D6 group (Δβ = `r round(meta.ari$beta[2], 3)` [95% CI `r round(meta.ari$ci.lb[2], 3)` – `r round(meta.ari$ci.ub[2], 3)`], *p* = `r format_p(meta.ari$pval[2])`). We did not observe a significant difference between the effect sizes in the haloperidol-CYP2D6 group (Δβ = `r round(meta.hal$beta[2], 3)` [95% CI `r round(meta.hal$ci.lb[2], 3)` – `r round(meta.hal$ci.ub[2], 3)`], *p* = `r format_p(meta.hal$pval[2])`) and the escitalopram-CYP2C19 group (Δβ = `r round(meta.esc$beta[2], 3)` [95% CI `r round(meta.esc$ci.lb[2], 3)` – `r round(meta.esc$ci.ub[2], 3)`], *p* = `r format_p(meta.esc$pval[2])`). However, the directions of all effects were consistent with the primary analysis. Results for effect sizes for proximal and distal outcomes, separately, across each of the gene-drug subgroups are given in the **Supplementary Materials**. 
+
+<br>
+<br>
+
+#### Secondary Analyses: Differences Across Metabolism Phenotypes
+
+```{r create dataset 1}
+meta.dat.all <- all_smd %>% drop_na(mp) %>% drop_na(rating) %>% drop_na(enzyme)
+```
+
+
+```{r interaction 1, warning = FALSE, fig.align='center'}
+V <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = meta.dat.all)
+
+meta.int <- rma.mv(absmd ~ 0 + rating:mp, 
+                        V = V,
+                        random = list(~ rating | Study, ~ 1 | es_id), struct = c("UN"),
+                        method = "REML", test = "t", dfs = 'contain',
+                        data = meta.dat.all,
+                        sparse = TRUE)
+
+
+meta.int <- robust(meta.int, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+``` 
+
+
+```{r comparison 1a (P vs D)}
+a <- anova(meta.int, X=rbind(c(0,0,-1,1,0,0,0,0), c(-1,1,0,0,0,0,0,0), c(0,0,0,0,-1,1,0,0),c(0,0,0,0,0,0,-1,1)))
+
+res <- data.frame(Test = a$hyp,
+                  Estimate = a$Xb,
+                  SE = a$se,
+                  pval = a$pval,
+                  corrected = p.adjust(a$pval, method = "holm"))
+```
+
+We fit a meta-analysis restricted to effect sizes for which metabolism phenotype information was available. We tested for moderation effects via the addition of an outcome-metabolism phenotype interaction terms to the model, comparing the effect of an atypical metabolism phenotype (i.e., Poor, Intermediate, Rapid, or Ultrarapid) versus the normal metabolism phenotype for either proximal, or distal outcomes. We included `r nrow(meta.dat.all)` effect sizes from `r length(unique(meta.dat.all$Study))` different studies with results shown in **Figure 3** and **Supplemental Materials**.
+
+We tested for differences between model estimates using Wald-type tests. Reported *p* values are corrected for multiple comparisons with Holm's method. Effect sizes for proximal outcomes were significantly larger than distal outcomes for the poor metabolism phenotype  (β = `r round(res$Estimate[1],3)` (SE = `r round(res$SE[1],3)`), *p* = `r format_p(res$corrected[1])`) and the intermediate metabolism phenotype (β = `r round(res$Estimate[2],3)` (SE = `r round(res$SE[2],3)`), *p* = `r format_p(res$corrected[2])`). There was no significant difference between proximal and distal estimates for both the rapid (β = `r round(res$Estimate[3],3)` (SE = `r round(res$SE[3],3)`), *p* = `r format_p(res$corrected[3])`) and ultrarapid (β = `r round(res$Estimate[4],3)` (SE = `r round(res$SE[4],3)`), *p* = `r format_p(res$corrected[4])`) metaboliser statuses. When assessing whether metabolism phenotypes had distinct effects within outcomes, we observed that the estimate for the poor metabolism phenotype was significantly different to all other phenotypes for proximal outcomes (**Table 3**). We also report that the effect size of an intermediate metabolism phenotype is significantly larger than that of a rapid metabolism phenotype. For distal outcomes, there were no significant differences between the effect estimates of metabolism phenotypes (**Table 4**).  As in the primary analysis, the largest variance component was at the within-study level (σ^2^ = `r round(meta.int$sigma2, 3)`), with greater between-study heterogeneity for proximal outcomes (τ^2^ = `r round(meta.int$tau2[1], 3)`) than distal outcomes (τ^2^ =  `r round(meta.int$tau2[2],3)`).
+
+<br>
+<br>
+
+```{r summary plot 1, warning = FALSE, fig.align='center', fig.cap="Figure 3. Forest plot showing absolute effect sizes of pharmacogenomic metabolism phenotypes on proximal and distal outcomes. Point shows the effect estimates for proximal (pink) and distal (blue) outcomes, error bars show robust 95% confidence intervals. Effect estimates reflect that of an atypical metabolism phenotype (i.e., Poor, Intermediate, Rapid, or Ultrarapid) versus the normal metabolism phenotype for either proximal, or distal outcomes."}
+pal <- c("#e4959a","#43919c")
+
+plot_all <- data.frame(PDR = c("Proximal", "Distal", "Proximal", "Distal", "Proximal", "Distal", "Proximal", "Distal"),
+                       mp = c("IM", "IM", "PM", "PM", "RM", "RM", "UM", "UM"),
+                       Estimate = meta.int$beta,
+                       SE = meta.int$se,
+                       ci.low = meta.int$ci.lb,
+                       ci.hi = meta.int$ci.ub
+)
+
+rownames(plot_all) <- NULL
+
+plot_all$PDR <- factor(plot_all$PDR, levels = c("Proximal", "Distal"))
+plot_all$mp <- factor(plot_all$mp, levels = c("PM", "IM", "RM", "UM"), labels = c("Poor Metaboliser", "Intermediate Metaboliser", "Rapid Metaboliser", "Ultrarapid Metaboliser"))
+
+ggplot(data = plot_all, aes(x=mp, y=Estimate, ymin=ci.low, ymax=ci.hi,col=PDR,fill=PDR)) + 
+#specify position here
+  #geom_linerange(linewidth=5, position=position_dodge(width = 0.5)) +
+   geom_hline(yintercept=0, lty=2) +
+#specify position here too
+  geom_point(size=3, shape=21, colour="white", stroke = 0.5, position=position_dodge(width = -0.5)) +
+  geom_errorbar(aes(width=0.5), position=position_dodge(width = -0.5)) +
+  scale_fill_manual(values=pal)+
+  scale_color_manual(values=pal)+
+  scale_y_continuous(name="Estimate", limits = c(-0.1, 1.5)) +
+   # labs(title='PGx Metabolism Phenotypes by Outcome Interaction') +
+#  scale_x_discrete(limits = c("Poor Metaboliser", "Intermediate Metaboliser", "Rapid Metaboliser", "Ultrarapid Metaboliser")) +
+  xlab("Metabolism Phenotype")+
+  #geom_text(aes(label = label), nudge_x = 0.15, show.legend = FALSE) +
+  coord_flip() +
+  theme(legend.position = "bottom") +
+  labs(colour = NULL, fill = NULL) +
+  theme_minimal() + 
+  theme(axis.title = element_text(colour = "#474044", size = 14),
+            axis.text.x = element_text(colour = "#474044", size = 11),
+            axis.text.y = element_text(colour = "#474044", size = 11, hjust = 0.5),
+            axis.ticks = element_line(colour = "#474044"),
+            plot.title = element_text(colour = "#474044"),
+            plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+  
+```
+
+
+<br>
+<br>
+```{r comparison 1b (P MP)}
+a <- anova(meta.int, X=rbind(c(1,0,-1,0,0,0,0,0), c(0,0,-1,0,1,0,0,0), c(0,0,-1,0,0,0,-1,0), c(-1,0,0,0,1,0,0,0), c(-1,0,0,0,0,0,1,0), c(0,0,0,0,-1,0,1,0)))
+
+res <- data.frame(Test = a$hyp,
+                  Estimate = a$Xb,
+                  SE = a$se,
+                  pval = format_p(a$pval),
+                  corrected = format_p(p.adjust(a$pval, method = "holm")))
+
+# make the names more readable
+res$Var.1 <- c("Intermediate Metaboliser - Poor Metaboliser", "Rapid Metaboliser - Poor Metaboliser", "Ultrarapid Metaboliser - Poor Metaboliser", "Rapid Metaboliser - Intermediate Metaboliser", "Ultrarapid Metaboliser - Intermediate Metaboliser", "Ultrarapid Metaboliser - Rapid Metaboliser")
+
+DT::datatable(res, colnames = c("Tests of Equality of Effect Sizes (proximal outcomes)", "Estimate", "SE", "p value", "p value (Holm)"), rownames = FALSE, caption = "Table 3. Results of ANOVA comparing whether proximal effect sizes for two different metabolism phenotypes (shown in the test column) are significantly different from each other.", options = list(
+  info = FALSE,
+  paging = FALSE,
+  searching = FALSE
+)) %>% DT::formatRound(columns = c('Estimate', 'SE'), digits = 4)
+
+```
+
+<br>
+<br>
+
+```{r comparison 1c (D MP)}
+a <- anova(meta.int, X=rbind(c(0,1,0,-1,0,0,0,0), c(0,0,0,-1,0,1,0,0), c(0,0,0,-1,0,0,0,1), c(0,-1,0,0,0,1,0,0), c(0,-1,0,0,0,0,0,1), c(0,0,0,0,0,-1,0,1)))
+
+res <- data.frame(Test = a$hyp,
+                  Estimate = a$Xb,
+                  SE = a$se,
+                  pval = format_p(a$pval),
+                  corrected = format_p(p.adjust(a$pval, method = "holm")))
+
+
+# make the names more readable
+res$Var.1 <- c("Intermediate Metaboliser - Poor Metaboliser", "Rapid Metaboliser - Poor Metaboliser", "Ultrarapid Metaboliser - Poor Metaboliser", "Rapid Metaboliser - Intermediate Metaboliser", "Ultrarapid Metaboliser - Intermediate Metaboliser", "Ultrarapid Metaboliser - Rapid Metaboliser")
+
+DT::datatable(res, colnames = c("Tests of Equality of Effect Sizes (distal outcomes)", "Estimate", "SE", "p value", "p value (Holm)"), rownames = FALSE, caption = "Table 4. Results of ANOVA comparing whether distal effect sizes for two different metabolism phenotypes (shown in the test column) are significantly different from each other.", options = list(
+  info = FALSE,
+  paging = FALSE,
+  searching = FALSE
+)) %>% DT::formatRound(columns = c('Estimate', 'SE', 'pval', 'corrected'), digits = 4)
+
+```
+
+
+<br> 
+<br>
+
+
+#### Applications
+
+```{r proximal and distal with shaded, warnings = FALSE, message=FALSE, results='hide'}
+# https://statsthinking21.github.io/statsthinking21-R-site/statistical-power-in-r.html
+
+# PROXIMAL
+effect_sizes <- c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, round(meta.all$ci.lb[1], 3), round(meta.all$beta[1],3), round(meta.all$ci.ub[1], 3)) 
+sample_sizes = seq(10, 500, 10)
+
+input_df <- crossing(effect_sizes,sample_sizes)
+
+pn <- pwr.t.test(power = 0.8, d=meta.all$beta[1], type='two.sample')
+pnl <- pwr.t.test(power = 0.8, d=meta.all$ci.lb[1], type='two.sample')
+pnu <- pwr.t.test(power = 0.8, d=meta.all$ci.ub[1], type='two.sample')
+
+# run get_power for each combination of effect size 
+# and sample size
+
+power_curves <- input_df %>%
+  do(get_power(.)) 
+
+power_curves$effect_sizes[power_curves$effect_sizes == round(meta.all$ci.lb[1], 3)] <- "95% CI (Lower)"
+power_curves$effect_sizes[power_curves$effect_sizes == round(meta.all$beta[1],3)] <- "Effect Size (Proximal)"
+power_curves$effect_sizes[power_curves$effect_sizes == round(meta.all$ci.ub[1], 3)] <- "95% CI (Upper)"
+
+
+power_curves2 <- subset(power_curves, effect_sizes == "95% CI (Lower)" | effect_sizes == "95% CI (Upper)")
+power_curves2w <- pivot_wider(power_curves2, names_from = "effect_sizes", values_from = power)
+colnames(power_curves2w) <- c("sample_sizes", "power_min", "power_max")
+
+power_curves <- power_curves %>%
+  mutate(effect_sizes = as.factor(effect_sizes)) 
+
+top_group <- power_curves %>% filter(effect_sizes == "Effect Size (Proximal)") %>% pull(effect_sizes)
+
+power_curves3 <- power_curves %>% filter(effect_sizes != "95% CI (Lower)" & effect_sizes != "95% CI (Upper)" )
+
+a <- ggplot() + 
+  geom_ribbon(data = power_curves2w, aes(x = sample_sizes, ymin = power_min, ymax = power_max), fill = "darkred", alpha = 0.3) +
+  geom_line(power_curves3, mapping = aes(x = sample_sizes, y = power, group = effect_sizes, linetype = effect_sizes, size = effect_sizes, color = effect_sizes)) + 
+  scale_linetype_manual(values = c("Effect Size (Proximal)" = "solid", "0.2" = "dotted", "0.3" = "2828", "0.4" = "4848", "0.5" = "dashed", "0.6" = "longdash", "0.7" = "twodash")) +
+  scale_size_manual(values = c("Effect Size (Proximal)" = 1.5, "0.2" = .5, "0.3" = .5, "0.4" = .5, "0.5" = .5, "0.6" = .5, "0.7" = .5)) +
+  scale_color_manual(values = c("Effect Size (Proximal)" = "red",  "0.2" = "black","0.3" = "black", "0.4" = "black", "0.5" = "black", "0.6" = "black", "0.7" = "black")) +
+  labs(title = "Power Curves for estimated n across Effect Sizes", subtitle = str_wrap(paste0("N given at effect size intervals (0.2 - 0.7) with Proximal effect estimate (",  round(pn$d,3), ") overlaid (shaded = 95% CI [", round(pnl$d,3), " - ", round(pnu$d,3), "])."))) + xlab("Sample Size") + ylab("Power") +
+  geom_hline(aes(yintercept = 0.8),colour = "black" ) +
+  #  guides(size = FALSE, linetype = FALSE) +
+  theme_minimal() +
+  theme(legend.title=element_blank(),
+        axis.title = element_text(colour = "#474044", size = 14),
+            axis.text.x = element_text(colour = "#474044", size = 11),
+            axis.text.y = element_text(colour = "#474044", size = 11, hjust = 0.5),
+            axis.ticks = element_line(colour = "#474044"),
+            plot.title = element_text(colour = "#474044"),
+                   plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+
+
+# DISTAL
+effect_sizes <- c(0.1,0.2, 0.3, 0.4, 0.5, round(meta.all$ci.lb[2], 3), round(meta.all$beta[2],3), round(meta.all$ci.ub[2], 3)) 
+sample_sizes = seq(10, 500, 10)
+
+input_df <- crossing(effect_sizes,sample_sizes)
+
+dn <- pwr.t.test(power = 0.8, d=meta.all$beta[2], type='two.sample')
+dnl <- pwr.t.test(power = 0.8, d=meta.all$ci.lb[2], type='two.sample')
+dnu <- pwr.t.test(power = 0.8, d=meta.all$ci.ub[2], type='two.sample')
+
+# run get_power for each combination of effect size 
+# and sample size
+
+power_curves <- input_df %>%
+  do(get_power(.)) 
+
+power_curves$effect_sizes[power_curves$effect_sizes == round(meta.all$ci.lb[2], 3)] <- "95% CI (Lower)"
+power_curves$effect_sizes[power_curves$effect_sizes == round(meta.all$beta[2],3)] <- "Effect Size (Distal)"
+power_curves$effect_sizes[power_curves$effect_sizes == round(meta.all$ci.ub[2], 3)] <- "95% CI (Upper)"
+
+
+power_curves2 <- subset(power_curves, effect_sizes == "95% CI (Lower)" | effect_sizes == "95% CI (Upper)")
+power_curves2w <- pivot_wider(power_curves2, names_from = "effect_sizes", values_from = power)
+colnames(power_curves2w) <- c("sample_sizes", "power_min", "power_max")
+
+power_curves <- power_curves %>%
+  mutate(effect_sizes = as.factor(effect_sizes)) 
+
+top_group <- power_curves %>% filter(effect_sizes == "Effect Size (Distal)") %>% pull(effect_sizes)
+
+power_curves3 <- power_curves %>% filter(effect_sizes != "95% CI (Lower)" & effect_sizes != "95% CI (Upper)" )
+
+b <- ggplot() + 
+  geom_ribbon(data = power_curves2w, aes(x = sample_sizes, ymin = power_min, ymax = power_max), fill = "darkred", alpha = 0.3) +
+  geom_line(power_curves3, mapping = aes(x = sample_sizes, y = power, group = effect_sizes, linetype = effect_sizes, size = effect_sizes, color = effect_sizes)) + 
+  scale_linetype_manual(values = c("Effect Size (Distal)" = "solid", "0.1" = "dotted", "0.2" = "2828", "0.3" = "4848", "0.4" = "dashed", "0.5" = "longdash")) +
+  scale_size_manual(values = c("Effect Size (Distal)" = 1.5, "0.1" = .5, "0.2" = .5, "0.3" = .5, "0.4" = .5, "0.5" = .5)) +
+  scale_color_manual(values = c("Effect Size (Distal)" = "red",  "0.1" = "black","0.2" = "black", "0.3" = "black", "0.4" = "black", "0.5" = "black")) +
+  labs(title = "Power Curves for estimated n across Effect Sizes", subtitle = str_wrap(paste0("N given at effect size intervals (0.1 - 0.5) with Distal effect estimate (",  round(dn$d,3), ") overlaid (shaded = 95% CI [", round(dnl$d,3), " - ", round(dnu$d,3), "])."))) + xlab("Sample Size") + ylab("Power") +
+  geom_hline(aes(yintercept = 0.8),colour = "black" ) +
+  # guides(size = FALSE, linetype = FALSE) +
+  theme_minimal() +
+    theme(legend.title=element_blank(),
+        axis.title = element_text(colour = "#474044", size = 14),
+            axis.text.x = element_text(colour = "#474044", size = 11),
+            axis.text.y = element_text(colour = "#474044", size = 11, hjust = 0.5),
+            axis.ticks = element_line(colour = "#474044"),
+            plot.title = element_text(colour = "#474044"),
+                   plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+
+#ggpubr::ggarrange(a,b, labels = "AUTO")
+```
+
+Based on the effect sizes generated in the primary meta-analysis, across all drugs and genes assessed, we generated curves to visualise the relationship between sample size and statistical power. These values are given as N per group for a two-sample *t*-test and are based on the average pharmacogenomic effect sizes estimated for proximal and distal outcomes (**Figure 4**). For a proximal outcome, the optimum sample size for 80% power was estimated at `r ceiling(pn$n)` individuals per group (range: `r ceiling(pnu$n)` - `r ceiling(pnl$n)`), where each group constitutes a specific genotype or metabolism phenotype. For a distal outcome, the optimum sample size for 80% power was estimated as `r ceiling(dn$n)`  individuals per group (range: `r ceiling(dnu$n)` - `r ceiling(dnl$n)`). Similarly, the Bayesian analysis supports a larger shrinkage factor (also called “exaggeration ratio”) across most of the z-score distribution for distal outcomes (mean = 1.97) than for proximal outcomes (mean = 1.28). Assuming the simplest scenario of equal unadjusted effect sizes, this suggests that posterior estimates for distal outcomes will be smaller than that for proximal outcomes in most cases (**Supplemental materials**). Finally, we developed a companion [Shiny App](https://locksk.shinyapps.io/pgx-effect-sizes/) allowing for the visualisation of effect size distributions and power curves. We also included the ability for users to perform their own exploratory meta-analyses using the full dataset, or filtered to whichever enzyme, drug, and outcome combinations desired. This also generates probability distributions based on the filtered data and a calculator for estimating posterior effect sizes that account for winner’s curse.
+
+```{r proximal plot, fig.align='center', warnings = FALSE, message=FALSE, results='hide'}
+a
+```
+
+```{r distal plot, fig.align='center', warnings = FALSE, message=FALSE, results='hide', fig.cap= "Figure 4. Plot shows power at a given effect size and sample size. Panels show power curves based on effect sizes generated for proximal (above) and distal (distal) effect sizes (and robust 95% CI) from the primary meta-analysis. Black horizontal line indicates 80% power."}
+b
+```
+
+<br>
+<br>
+<br>
+
+## <strong> Discussion </strong>
+
+```{r sample size check}
+prox <- all_smd %>% filter(rating == "Proximal")
+prox2 <- filter(prox, Total_N <= (ceiling(pn$n)*2))
+res1 <- (nrow(prox2)/nrow(prox)*100)
+
+dist <- all_smd %>% filter(rating == "Distal")
+dist2 <- filter(dist, Total_N <= (ceiling(dn$n)*2))
+res2 <- (nrow(dist2)/nrow(dist)*100)
+
+orp <- esc::convert_d2or(d = out.all$Estimate[1], se = out.all$SE[1])
+ord <- esc::convert_d2or(d = out.all$Estimate[2], se = out.all$SE[2])
+```
+
+Here, we assess and quantify the effect size of pharmacogenomic variation across a large spectrum of phenotypes related to psychiatric drugs. We report on `r nrow(all_smd)` effect sizes from `r length(unique(all_smd$Study))` studies, demonstrating larger effects of pharmacogenomic variation on proximal outcomes than on distal outcomes. We showcase how the collected corpus of studies can be used to inform future pharmacogenomics research and study design and provide an interactive web app for browsing the raw data, facilitating the reproduction of our analyses or their adaptation to outcomes or drugs of specific interest for other researchers. 
+
+Our primary finding was that, as expected, the effect for pharmacogenomic variation on proximal outcomes was significantly greater than that for distal outcomes. This generalises previous observations made in drug-gene guidelines about strong genetic effects on pharmacokinetics translating into weaker or unclear effects on clinical outcomes (Bousman et al., 2023b; Duarte et al., 2024). The difference in effect sizes between proximal and distal outcomes was consistent in all sensitivity analyses we made on each of the most common gene-drug subgroups in the psychiatric literature and significant in half of them, suggesting that our results are not driven by heterogeneity in the drugs or enzyme systems captured by our broad literature review. Furthermore, our analysis provides a rationale for the lack of pharmacodynamic primary evidence observed in psychiatric pharmacogenomic guidelines (Bousman et al., 2020), and supports that pharmacogenomic studies might see benefits in explicitly assessing how their phenotypes map to a “proximal-distal continuum” (Brenner et al., 1995) of genetic effects. Ideally, studies should also consider multiple outcomes relevant to clinical practice when possible, as recommended previously (Guchelaar et al., 2025). 
+
+Currently, the translation of pharmacogenomics research to clinical recommendations is primarily informed by strength of evidence ratings written into drug-gene guidelines. As an example, the five-step variant scoring system employed by PharmGKB to standardise reports includes evidence ratings by phenotype, *p*-value, cohort size, study type, and effect size (Whirl-Carrillo et al., 2021). In this calculation, the “phenotype” criteria gives a larger score to studies of drug efficacy, toxicity or dosage, while the “effect size” category increases the weight of an association if a threshold of magnitude is passed (OR >= 2, OR =< 0.5). Our results suggest that these two ratings might effectively have opposing effects, as proximal associations tend to report larger effects (pooled OR = `r round(orp$es,1)`) more commonly than distal outcomes (pooled OR = `r round(ord$es,1)`). Therefore, as the size of the pharmacogenomics literature increases and the routine access of clinicians to genomic information draws near, specific pharmacogenomic weighting rules for different phenotypes or outcome classes might need to be added to the present scheme. As there is already an explicit aim of ensuring that analyses of clinically meaningful (often distal) outcomes form the basis of drug-gene guidelines when available, such a modification would ensure a fairer evaluation of their results on the evidence assessment process. 
+
+We also investigated whether proximal-distal outcome differences in effect sizes existed across the functional spectrum of the enzymes included in our review. In these analyses we noted the distinction between estimates for proximal and distal outcomes were less consistent than in the primary analysis, with differences apparent only across the slower metabolism phenotypes (i.e., intermediate and poor). In particular, studies of poor versus normal metabolisers showed significantly larger effects than other atypical metabolism phenotypes, albeit only across proximal outcomes (**Figure 3**). These results suggest that greater care might be needed for defining metabolism phenotypes, particularly for those reflecting increased function. Furthermore, the fact that effect size estimates from ultra-rapid metabolisers versus normal metabolisers mostly overlap those of rapid and intermediate metabolisers for both proximal and distal outcomes supports that this phenotype might be particularly ill-defined in most studies. To this effect, it has already been shown that “normal” metabolisers of several enzymes have higher variability in pharmacokinetic measures when compared to atypical metabolisers identified by genetic testing, which might be attributed to the existence of functional alleles not currently assessed in pharmacogenomic studies (Lauschke et al., 2024). 
+
+Our findings have applications beyond this study. First, we provide estimates for the expected effect sizes of psychiatric pharmacogenomics analyses, based on the type of phenotype investigated. These can inform data collection efforts for future research. As an illustration, our results suggest that if per-group sample sizes are collected aiming for an appropriately-powered analysis of a proximal phenotype (e.g. drug metabolism), they are likely to be substantially underpowered for assessing a distal outcome (e.g. treatment response). Second, a retrospective analysis of our dataset using outcome-specific calculations for 80% statistical power (**Figure 4**), shows that most analyses included in our review may indeed not reach this power threshold (`r round(res1, 1)`% proximal, `r round(res2, 1)`% distal). This suggests that barriers to participant recruitment, and potentially the availability of research funding, remain a limitation to psychiatric pharmacogenomics work (Pardiñas et al., 2021). Motivated by this finding, we conducted an estimation of the signal-to-noise ratio of past research in psychiatric pharmacogenomics using our collected studies, following the general procedure in van Zwet and Gelman (2022). The derived estimates allow for a Bayesian re-evaluation of the test statistics of comparable studies, accounting for the inflation in effect sizes that is often due to “Winner’s curse” (Zöllner and Pritchard, 2007). We provide a worked example of this methodology in the **Supplementary Material**, and implement all the relevant formulae to reproduce or replicate our calculations in a dedicated section of our [Shiny app](https://locksk.shinyapps.io/pgx-effect-sizes/). 
+
+One of the strengths of this research is the large number of studies and effects included in the meta-analysis. This was attained through broad but well-defined inclusion criteria, namely all analyses investigating pharmacogenomic variation in cytochrome P450 (CYP) genes in participants taking psychiatric drugs. Second, based on calls to improve transparency and reproducibility in meta-analytic research (Ahern et al., 2021), we developed a [companion dashboard](https://locksk.shinyapps.io/pgx-effect-sizes/) in R Shiny that enables users to browse, filter, and download the data used in the present meta-analysis. The application also allows users to perform exploratory meta-analyses of subgroups of the data, as well as power calculations based on these results. In such a rapidly evolving field, this is not intended to substitute future efforts to compile or curate the literature but does allow users to quickly assess reported effect sizes for arbitrary combinations of drugs, enzymes, and/or outcomes that might be of interest. 
+
+A primary limitation of this research is the lack of studies identified from African and South American nations, excluding Brazil. Therefore, the results from this meta-analysis may not be generalisable to countries and participants in these locations. This needs to be taken into account as pharmacogenomic variation is known to differ across populations, in some instances quite dramatically (e.g., CYP3A4/5; Masimirembwa et al., 2014). However, consistent with a previous review (Popejoy, 2019), many studies did not report detailed ancestry information and so we were unable to statistically account for this. Another limitation derived from the assessed papers is that, while most studies used up-to-date nomenclature and metabolism phenotype definitions, several used criteria which are currently outdated. This has been corrected wherever possible, but it has not been feasible in all cases. Methodologically, visual inspection of funnel plots from the meta-analysis and results from the adapted Egger’s regression test are suggestive of funnel plot asymmetry. This has sometimes been argued as a consequence of publication bias and the inclusion of underpowered studies, but more complex factors could be at play (Afonso et al., 2024). Therefore, we made efforts to guard against potential biases in our effect size estimations by using correlated and hierarchical effects models with robust variance structures, as is best practice for datasets with potentially complex dependencies. A final limitation is that it is possible that measurement issues could partly explain our findings. Proximal outcomes such as drug pharmacokinetics and clearance can be physically measured and are thus generally easier to quantify than distal outcomes such as symptom severity. While ADRs and other distal clinical events (i.e. death) might also be easily and reliably assessed, if instruments of lower psychometric resolution are more common in distal outcomes research, this would also dilute genetic effects (Sluis et al., 2010). We are unable to account for this in our analysis as we do not have good estimates of the reliability or measurement error of all instruments involved, so our results should be considered with this caveat.
+
+In summary, we found evidence of substantial variability in the magnitude of effect sizes reported by psychiatric pharmacogenomic studies, which we could relate to a simple phenotype classification involving either “proximal” or “distal” outcomes. We found evidence that this effect size disparity is apparent even when explicitly accounting for metabolism phenotype and is particularly pronounced for variation conferring slower enzyme activity. We have quantified these differences between proximal and distal effect sizes and provide ways in which future study design can be improved, for example via power calculations based on the results we compiled throughout our literature review. These findings may also have relevance for pharmacogenomics consortia, and future efforts focused on other drugs and disciplines of study might support new evaluations of the strength of evidence behind genotype-guided pharmacogenomic recommendations. 
+
+<br>
+<br>
+<br>
+<br>
+
+## <strong> References </strong>
+### References 
+
+<br>
+
+References
+Afonso, J., Ramirez-Campillo, R., Clemente, F. M., Büttner, F. C., and Andrade, R. (2024). The Perils of Misinterpreting and Misusing “Publication Bias” in Meta-analyses: An Education Review on Funnel Plot-Based Methods. Sports Med 54, 257–269. doi: 10.1007/s40279-023-01927-9
+Ahern, T. P., MacLehose, R. F., Haines, L., Cronin-Fenton, D. P., Damkier, P., Collin, L. J., et al. (2021). Improving the transparency of meta-analyses with interactive web applications. BMJ Evidence-Based Medicine 26, 327–332. doi: 10.1136/bmjebm-2019-111308
+Behera, S., Catreux, S., Rossi, M., Truong, S., Huang, Z., Ruehle, M., et al. (2025). Comprehensive genome analysis and variant detection at scale using DRAGEN. Nat Biotechnol 43, 1177–1191. doi: 10.1038/s41587-024-02382-1
+Bell, J. (2014). Stratified medicines: towards better treatment for disease. The Lancet 383, S3–S5. doi: 10.1016/S0140-6736(14)60115-X
+Bousman, C. A., Bengesser, S. A., Aitchison, K. J., Amare, A. T., Aschauer, H., Baune, B. T., et al. (2020). Review and Consensus on Pharmacogenomic Testing in Psychiatry. Pharmacopsychiatry 54, 5–17. doi: 10.1055/a-1288-1061
+Bousman, C. A., Maruf, A. A., Marques, D. F., Brown, L. C., and Müller, D. J. (2023a). The emergence, implementation, and future growth of pharmacogenomics in psychiatry: a narrative review. Psychol Med 53, 7983–7993. doi: 10.1017/S0033291723002817
+Bousman, C. A., Stevenson, J. M., Ramsey, L. B., Sangkuhl, K., Hicks, J. K., Strawn, J. R., et al. (2023b). Clinical Pharmacogenetics Implementation Consortium (CPIC) Guideline for CYP2D6, CYP2C19, CYP2B6, SLC6A4, and HTR2A Genotypes and Serotonin Reuptake Inhibitor Antidepressants. Clinical Pharmacology & Therapeutics 114, 51–68. doi: 10.1002/cpt.2903
+Brenner, M. H., Curbow, B., and Legro, M. W. (1995). The Proximal-Distal Continuum of Multiple Health Outcome Measures: The Case of Cataract Surgery. Medical Care 33, AS236–AS244.
+Champely, S. (2020). pwr: Basic Functions for Power Analysis. Available at: https://github.com/heliosdrm/pwr
+Chang, W., Cheng, J., Allaire, J. J., Sievert, C., Schloerke, B., Xie, Y., et al. (2025). shiny: Web Application Framework for R. Available at: https://shiny.posit.co/
+Dellen, E. van (2024). Precision psychiatry: predicting predictability. Psychological Medicine 54, 1500–1509. doi: 10.1017/S0033291724000370
+Duarte, J. D., Thomas, C. D., Lee, C. R., Huddart, R., Agundez, J. A. G., Baye, J. F., et al. (2024). Clinical Pharmacogenetics Implementation Consortium Guideline (CPIC) for CYP2D6, ADRB1, ADRB2, ADRA2C, GRK4, and GRK5 Genotypes and Beta-Blocker Therapy. Clinical Pharmacology & Therapeutics 116, 939–947. doi: 10.1002/cpt.3351
+Eichler, H.-G., Abadie, E., Breckenridge, A., Flamion, B., Gustafsson, L. L., Leufkens, H., et al. (2011). Bridging the efficacy–effectiveness gap: a regulator’s perspective on addressing variability of drug response. Nat Rev Drug Discov 10, 495–506. doi: 10.1038/nrd3501
+Gelman, A., and Carlin, J. (2014). Beyond Power Calculations: Assessing Type S (Sign) and Type M (Magnitude) Errors. Perspect Psychol Sci 9, 641–651. doi: 10.1177/1745691614551642
+Gottesman, I. I., and Gould, T. D. (2003). The Endophenotype Concept in Psychiatry: Etymology and Strategic Intentions. AJP 160, 636–645. doi: 10.1176/appi.ajp.160.4.636
+Groenwold, R. H. H. (2021). “Chapter 2 - The efficacy-effectiveness gap,” in Pragmatic Randomized Clinical Trials, eds. C. J. Girman and M. E. Ritchey (Academic Press), 9–19. doi: 10.1016/B978-0-12-817663-4.00024-6
+Guchelaar, H.-J., van der Wouden, C. H., Manson, L. E. N., Abdullah-Koolmees, H., Blagec, K., Blagus, T., et al. (2025). Pharmacogenetic Implementation Studies—Lessons Learned From the PREPARE Study. Clin Pharmacol Ther. n/a. doi: https://doi.org/10.1002/cpt.3749
+Howes, O. D., Thase, M. E., and Pillinger, T. (2022). Treatment resistance in psychiatry: state of the art and new directions. Mol Psychiatry 27, 58–72. doi: 10.1038/s41380-021-01200-3
+Huang, W., Percie du Sert, N., Vollert, J., and Rice, A. S. C. (2020). “General Principles of Preclinical Study Design,” in Good Research Practice in Non-Clinical Pharmacology and Biomedicine, eds. A. Bespalov, M. C. Michel, and T. Steckler (Cham: Springer International Publishing), 55–69. doi: 10.1007/164_2019_277
+Huda, A. S. (2019). The medical model in mental health: an explanation and evaluation. Oxford: Oxford university press.
+Hughes, D. A. (2018). Economics of Pharmacogenetic-Guided Treatments: Underwhelming or Overstated? Clinical Pharmacology & Therapeutics 103, 749–751. doi: 10.1002/cpt.1030
+Huhn, M., Tardy, M., Spineli, L. M., Kissling, W., Förstl, H., Pitschel-Walz, G., et al. (2014). Efficacy of Pharmacotherapy and Psychotherapy for Adult Psychiatric Disorders: A Systematic Overview of Meta-analyses. JAMA Psychiatry 71, 706–715. doi: 10.1001/jamapsychiatry.2014.112
+Ingelman-Sundberg, M., and Molden, E. (2025). Therapeutic drug monitoring, liquid biopsies or pharmacogenomics for prediction of human drug metabolism and response. British Journal of Clinical Pharmacology 91, 1569–1579. doi: 10.1111/bcp.16048
+IntHout, J., Ioannidis, J. P. A., Rovers, M. M., and Goeman, J. J. (2016). Plea for routinely presenting prediction intervals in meta-analysis. BMJ Open 6, e010247. doi: 10.1136/bmjopen-2015-010247
+Kacser, H., and Burns, J. A. (1981). THE MOLECULAR BASIS OF DOMINANCE. Genetics 97, 639–666. doi: 10.1093/genetics/97.3-4.639
+Klein, T. E., and Ritchie, M. D. (2018). PharmCAT: A Pharmacogenomics Clinical Annotation Tool. Clinical Pharmacology & Therapeutics 104, 19–22. doi: 10.1002/cpt.928
+Lauschke, V. M., Zhou, Y., and Ingelman-Sundberg, M. (2024). Pharmacogenomics Beyond Single Common Genetic Variants: The Way Forward. Annual Review of Pharmacology and Toxicology 64, 33–51. doi: 10.1146/annurev-pharmtox-051921-091209
+Leucht, S., Hierl, S., Kissling, W., Dold, M., and Davis, J. M. (2012). Putting the efficacy of psychiatric and general medicine medication into perspective: review of meta-analyses. The British Journal of Psychiatry 200, 97–106. doi: 10.1192/bjp.bp.111.096594
+Lüdecke, D. (2018). esc: Effect Size Computation for Meta Analysis. doi: 10.5281/zenodo.1249218
+Masimirembwa, C., Dandara, C., and Hasler, J. (2014). “Chapter 43 - Population Diversity and Pharmacogenomics in Africa,” in Handbook of Pharmacogenomics and Stratified Medicine, ed. S. Padmanabhan (San Diego: Academic Press), 971–998. doi: 10.1016/B978-0-12-386882-4.00043-8
+Moher, D., Liberati, A., Tetzlaff, J., and Altman, D. G. (2010). Preferred reporting items for systematic reviews and meta-analyses: The PRISMA statement. International Journal of Surgery 8, 336–341. doi: 10.1016/j.ijsu.2010.02.007
+Nakagawa, S., Lagisz, M., O’Dea, R. E., Rutkowska, J., Yang, Y., Noble, D. W. A., et al. (2021). The orchard plot: Cultivating a forest plot for use in ecology, evolution, and beyond. Research Synthesis Methods 12, 4–12. doi: 10.1002/jrsm.1424
+Nutt, D. J. (2025). Drug development in psychiatry: 50 years of failure and how to resuscitate it. The Lancet Psychiatry 12, 228–238. doi: 10.1016/S2215-0366(24)00370-5
+Pardiñas, A. F., Owen, M. J., and Walters, J. T. R. (2021). Pharmacogenomics: A road ahead for precision medicine in psychiatry. Neuron 109, 3914–3929. doi: 10.1016/j.neuron.2021.09.011
+Pirmohamed, M., and Park, B. K. (2001). Genetic susceptibility to adverse drug reactions. Trends in Pharmacological Sciences 22, 298–305. doi: 10.1016/S0165-6147(00)01717-X
+PlotDigitizer: Version 3.1.6 (2025). Available at: https://plotdigitizer.com
+Popejoy, A. B. (2019). <p>Diversity In Precision Medicine And Pharmacogenetics: Methodological And Conceptual Considerations For Broadening Participation</p>. PGPM 12, 257–271. doi: 10.2147/PGPM.S179742
+Pustejovsky, J. (2024). clubSandwich: Cluster-Robust (Sandwich) Variance Estimators with Small-Sample Corrections. Available at: http://jepusto.github.io/clubSandwich/
+R Core Team (2021). R: A Language and Environment for Statistical Computing. Available at: https://www.R-project.org/
+Roden, D. M., Altman, R. B., Benowitz, N. L., Flockhart, D. A., Giacomini, K. M., Johnson, J. A., et al. (2006). Pharmacogenomics: Challenges and Opportunities. Ann Intern Med 145, 749–757. doi: 10.7326/0003-4819-145-10-200611210-00007
+Roden, D. M., McLeod, H. L., Relling, M. V., Williams, M. S., Mensah, G. A., Peterson, J. F., et al. (2019). Pharmacogenomics. The Lancet 394, 521–532. doi: 10.1016/S0140-6736(19)31276-0
+Rodgers, M. A., and Pustejovsky, J. E. (2021). Evaluating meta-analytic methods to detect selective reporting in the presence of dependent effect sizes. Psychological Methods 26, 141–160. doi: 10.1037/met0000300
+Simon, N., and von Fabeck, K. (2025). Are plasma drug concentrations still necessary? Rethinking the pharmacokinetic link in dose–response relationships. Front. Pharmacol. 16. doi: 10.3389/fphar.2025.1660323
+Sluis, S. van der, Verhage, M., Posthuma, D., and Dolan, C. V. (2010). Phenotypic Complexity, Measurement Bias, and Poor Phenotypic Resolution Contribute to the Missing Heritability Problem in Genetic Association Studies. PLOS ONE 5, e13929. doi: 10.1371/journal.pone.0013929
+Spina, E., and de Leon, J. (2015). Clinical applications of CYP genotyping in psychiatry. J Neural Transm 122, 5–28. doi: 10.1007/s00702-014-1300-5
+Stern, S., Linker, S., Vadodaria, K. C., Marchetto, M. C., and Gage, F. H. (2018). Prediction of response to drug therapy in psychiatric disorders. Open Biology 8, 180031. doi: 10.1098/rsob.180031
+van Zwet, E., and Gelman, A. (2022). A Proposal for Informative Default Priors Scaled by the Standard Error of Estimates. The American Statistician 76, 1–9. doi: 10.1080/00031305.2021.1938225
+Viechtbauer, W. (2010). Conducting Meta-Analyses in R with the metafor Package. Journal of Statistical Software 36, 1–48. doi: 10.18637/jss.v036.i03
+Wan, X., Wang, W., Liu, J., and Tong, T. (2014). Estimating the sample mean and standard deviation from the sample size, median, range and/or interquartile range. BMC Medical Research Methodology 14, 135. doi: 10.1186/1471-2288-14-135
+Whirl-Carrillo, M., Huddart, R., Gong, L., Sangkuhl, K., Thorn, C. F., Whaley, R., et al. (2021). An Evidence-Based Framework for Evaluating Pharmacogenomics Knowledge for Personalized Medicine. Clinical Pharmacology & Therapeutics 110, 563–572. doi: 10.1002/cpt.2350
+Wu, A. H. B. (2015). Pharmacogenomic testing and response to warfarin. The Lancet 385, 2231–2232. doi: 10.1016/S0140-6736(14)62219-4
+Zhao, M., Ma, J., Li, M., Zhang, Y., Jiang, B., Zhao, X., et al. (2021). Cytochrome P450 Enzymes and Drug Metabolism in Humans. International Journal of Molecular Sciences 22, 12808. doi: 10.3390/ijms222312808
+Zöllner, S., and Pritchard, J. K. (2007). Overcoming the Winner’s Curse: Estimating Penetrance Parameters from Case-Control Data. The American Journal of Human Genetics 80, 605–615. doi: 10.1086/512821
+Zwetsloot, P.-P., Van Der Naald, M., Sena, E. S., Howells, D. W., IntHout, J., De Groot, J. A., et al. (2017). Standardized mean differences cause funnel plot distortion in publication bias assessments. eLife 6, e24260. doi: 10.7554/eLife.24260
+
+<br>
+<br>
+<br>
+<br>
+
+## <strong> Supplementary Methods </strong> {.tabset}
+### Literature Search Terms
+#### Literature Search Terms
+
+Literature searches were conducted across PUBMED, Cochrane, and SCOPUS on November 5th, 2024. Exact search varied by database; however, the following terms and Boolean operators were used to search across titles: <p>
+
+Pharmacogenomics keyword AND <p>
+
+> ("pharmacogen\*" OR "CYP" OR "CYP2C19" OR "CYP2D6" OR "CYP1A2" OR "CYP3A4" OR "CYP3A5" OR "CYP2C9" OR "cytochrome P450" OR "genotype" OR "allele" OR "star allele" OR "metabol\*" OR "metabol\* status" OR "metabol* phenotype" OR "poor metabol\*" OR "intermediate metabol\*" OR "extensive metabol\*" OR "normal metabol\*" OR "rapid metabol\*" OR "ultrarapid metabol\*" OR "ultra-rapid metabol\*" OR "activity score" OR "activity" OR "increased function" OR "decreased function")
+
+Medication keyword AND <p>
+
+>("psychiatric" OR "drugs" OR "medication" OR "clozapine" OR "risperidone" OR "quetiapine" OR "olanzapine" OR "aripiprazole" OR "haloperidol" OR "antipsychotic" OR "atypical antipsychotic" OR "typical antipsychotic" OR "neuroleptic" OR "sertraline" OR "escitalopram" OR "amitriptyline" OR "nortriptyline" OR "paroxetine" OR "venlafaxine" OR "fluvoxamine" OR "fluoxetine" OR "antidepressants" OR "SSRIs")
+
+Outcome keyword AND <p>
+
+>("metabolic ratio" OR "concentration" OR "levels" OR "serum" OR "plasma" OR "moiety" OR "metabolite" OR "clearance" OR "AUC" OR "half life" OR "C/D" OR "dose" OR "dose adjustment" OR "sympt\*" OR "improve\*" OR "increas\*" OR "decreas\*" OR "reduc\*" OR "sever\*" OR "tolerability" OR "response" OR "remission" OR "discontinuation" OR "therapeutic outcome" OR "treatment outcome" OR "therapeutic response" OR "failure" OR "symptom" OR "efficacy" OR "compliance" OR "adherence" OR "extra-pyramidal" OR "extra pyramidal" OR "side effects" OR "adverse effects" OR "adverse drug reaction" OR "ADR" OR "adverse event" OR "QTc" OR "prolactin" OR "side effect" OR "tardive" OR "weight gain" OR "switch" OR "sedation" OR "drop out" OR "score" OR "suicid\*" OR "resistance" OR "refractory" OR "responsive" OR "hospital\*")
+
+AND NOT Entry type keyword <p>
+
+>("Guidelines" OR "Guideline" OR "Review" OR "guidelines" OR "guideline" OR "review" OR "case study" OR "case series" OR "case report")
+
+<br>
+
+In the PUBMED search only, we filtered to studies conducted on humans. Any studies conducted in vitro or on non-human animals that were identified from other databases were excluded during the later screening stages.
+
+
+<br>
+<br>
+
+### Effect Size Conversions
+#### Effect Size Conversions
+
+Across the included studies, results were reported using a range of statistics such as measures of central tendency, observations, and those from inferential tests. These were used to calculate the standardised mean difference of the pharmacogenomic effect as outlined in Supplementary Table 1.  When SMD was calculated based on descriptive statistics or observations, we used a minimum per-group sample size of N = 5 (Curtis et al. 2015), and per-analysis sample size of N = 25 for regression models (Jenkins and Quintana-Ascencio 2020). 
+
+| Reported Effect Size | Reported Variance             | Conversions                                                                     | Required Effect Size (etc)  | package::function() |
+| -------------------- | ----------------------------- | ------------------------------------------------------------------------------- | --------------------------- | ------------------- |
+| Mean                 | Standard deviation            | NA                                                                              | Mean and Standard deviation | esc::esc_mean_sd()  |
+| Mean                 | Confidence intervals          | Confidence Intervals to Standard Error to Standard Deviation.<sup>1</sup>       | Mean and Standard deviation | esc::esc_mean_sd()  |
+| Mean                 | Standard Errors               | Confidence Intervals to Standard Error.<sup>2</sup>                             | Mean and Standard deviation | esc::esc_mean_sd()  |
+| Median               | Interquartile range, Min, Max | Median and IQR and Range to Mean<sup>3</sup> and Standard Deviation<sup>4</sup> | Mean and Standard deviation | esc::esc_mean_sd()  |
+| Median               | Range                         | Median and Range to Mean<sup>5</sup> and Standard Deviation<sup>6</sup>         | Mean and Standard deviation | esc::esc_mean_sd()  |
+| Median               | Interquartile range           | Median and IQR to Mean<sup>7</sup> and Standard Deviation<sup>8</sup>           | Mean and Standard deviation | esc::esc_mean_sd()  |
+| χ<sup>2</sup>        | NA                            | NA                                                                              | χ<sup>2</sup>/p N           | esc::esc_2x2()      |
+| OR                   | Confidence intervals          | Confidence Intervals to Standard Error<sup>9</sup>                              | OR and Standard error       | esc::convert_or2d() |
+| β                    | SE                            | Beta and SE to t<sup>10</sup>                                                   | t, p, total N               | esc::esc_t()        |
+| t                    | NA                            | NA                                                                              | t, p, total N               | esc::esc_t()        |
+
+
+Supplementary Table 1. Overview of equations used to calculate effect sizes from reported data in the present study. 
+
+<br>
+<br>
+
+#### Measures of Central Tendency
+Means were reported alongside standard deviations (SD), standard errors (SE), and confidence intervals (CIs). They can be converted to standardised mean difference with the `esc::esc_mean_sd()` function. Mean and standard deviation do not require further conversion. Standard errors and confidence interval need to be changed to standard deviation prior to running the function. 
+95% confidence intervals for a mean can be converted to standard errors as shown below. The denominator is taken from the normal distribution, and different denominators are used for different confidence intervals; 3.92 is used for 95% confidence intervals. 
+
+$$\begin{aligned}
+1) SE = \frac{CI(Upper)-CI(Lower)}{3.92}
+\end{aligned}$$
+
+Where groups have small sample sizes (N), the confidence intervals should have been sampled from the t distribution, and not the normal distribution. At low samples (< 30), the t distribution and the normal distribution differ, and so when the group N is lower than 30 the denominator is instead replaced with the inverse of the t distribution for the given sample size (Higgins et al. 2024). This function is defined as `tinv()` in this markdown. 
+
+Standard error is converted to standard deviation as follows.
+
+$$\begin{aligned}
+2) SD = SE \times \sqrt{N}
+\end{aligned}$$
+
+Medians were also reported in papers alongside interquartile ranges and/or ranges. We estimated means and standard deviations using the following equations (Wan et al. 2014), as these allow for better estimates at low sample sizes than previous methods (Hozo et al. 2005; Bland 2014).
+Median, IQR, Min, Max are available, mean and standard deviation are calculated as so, and have been defined in this markdown as `c1_meansd`:
+
+$$\begin{aligned}
+3)Mean = \frac{Min+(2 \times Q1)+(2 \times Median)+(2 \times Q3)+Max}{8} \\ \\
+4)SD = \frac{Max - Min}{4 \times qnorm((\frac{N-0.375}{N+0.25}),0,1)} + \frac{Q3-Q1}{4 \times qnorm((\frac{0.75 \times N-0.125}{N+0.25}),0,1)}
+\end{aligned}$$
+
+When only the median and range are available, the formulae become, and have been defined in this markdown as `c2_meansd`:
+
+$$\begin{aligned}
+5)Mean = \frac{Min+(2 \times Median)+Max}{4} \\ \\
+6)SD=\frac{Max-Min}{2 \times qnorm((\frac{N-0.375}{N+0.25}),0,1)}
+\end{aligned}$$
+
+When only the median and IQR are available, the formulae become, and have been defined in this markdown as `c3_meansd`:
+
+$$\begin{aligned}
+7)Mean = \frac{Q1+Median+Q3}{3} \\ \\
+8)SD=\frac{Q3-Q1}{2 \times qnorm((\frac{0.75 \times N-0.125}{N+0.25}),0,1)}
+\end{aligned}$$
+
+Where intervention studies report statistics as a change between baseline and a given time point, we calculate the SMD at each time point separately. We did not combine SMDs calculated at a single time point with those representing a change over time as recommended in the Cochrane handbook, given that this can be problematic when using the standardised mean difference (Higgins et al. 2024); thus, if single time point measures were not available, these were excluded from the analysis.
+
+<br>
+<br>
+
+#### Observations
+Where observational data were reported, the SMD was calculated using `esc::2x2()`. In instances where a cell count in the 2x2 table was 0, we performed a Haldane-Anscome correction by adding 0.5 to all counts in that table to allow the SMD to be calculated (Weber et al. 2020).
+
+<br>
+<br>
+
+#### Measures of Effect (Ratio Measures)
+Odds ratios (OR) are reported with confidence intervals. These must be converted into standard errors prior to estimating the SMD (`esc::convert_or2d()`). The equation is the same as above, however the natural log of the upper and lower confidence intervals must be used instead. There is no need to sample from the t-distribution at low sample sizes. Where variables log-transformed prior to use in the model, the OR was back-transformed.
+
+$$\begin{aligned}
+9) SE = \frac{log(CI(Upper))-log(CI(Lower))}{3.92}
+\end{aligned}$$
+
+<br>
+<br>
+
+#### Measures of Effect (Absolute Measures)
+Many regression analyses report beta coefficients, often alongside standard errors. These cannot be directly converted to SMD. However, they can be converted to a t statistic which can then be converted to SMD. Where variables log-transformed prior to use in the model, the β was back-transformed.
+
+$$\begin{aligned}
+10) t = \beta \times SE
+\end{aligned}$$
+
+The *t* statistics can be directly converted to an SMD estimate by using the t statistic, its p value and the total number of participants analysed using `esc::esc_t()`.
+
+<br>
+<br>
+
+#### Metabolic Ratios
+Metabolic ratios have been reported in one of two ways:
+
+i)	Metabolic Ratio = drug / metabolite
+ii)	Metabolic Ratio = metabolite / drug
+
+The interpretation of these is different, with higher values reflecting slower metabolism in the first case, and faster metabolism in the second case. Although the interpretation is slightly less intuitive, most metabolic ratios have been reported with the parent drug divided by the metabolite. Therefore, all other metabolic ratios have been converted so that they are equivalent to this standard. This method varies slightly dependent on whether results are given as mean, β, or ORs (see equations 11 – 13). The same method was applied to their standard deviations, standard errors, and confidence intervals, respectively. 
+
+$$\begin{aligned}
+11) Mean\frac{D}{M} = exp(log(Mean\frac{M}{D})\times-1) \\ \\
+12)\beta\frac{D}{M} = exp(log(\beta\frac{M}{D})\times-1) \\ \\
+13)OR\frac{D}{M} = exp(log(OR\frac{M}{D})\times-1)
+\end{aligned}$$
+
+<br>
+<br>
+
+#### Joining Groups
+There are also instances where we want to calculate metabolism phenotypes based on per genotype means/SDs or combine metabolism phenotypes if they have been inappropriately assigned. To do this we have followed Cochrane guidance (Higgins et al. 2024) using the equations below, defined as `join_means()` in this markdown:
+
+$$\begin{aligned}
+14) Mean = \frac{N{1}M{1}+N{2}M{2}}{N{1}+N{2}} \\ \\
+15) SD = \sqrt \frac{(N{1}-1)SD{1}^2+(N{2}-1)SD{2}^2+\frac{N{1}N{2}}{N{1}+N{2}}(M{1}^2+M{2}^2 - 2M{1}M{2})}{N{1}+N{2}-1}
+\end{aligned}$$
+
+<br>
+<br>
+<br>
+<br>
+
+### Pharmacogenomic Alleles and Metabolism Phenotypes
+#### Pharmacogenomic Alleles and Metabolism Phenotypes
+
+We used information from PharmGKB Gene-Specific Information tables to define allele functions and metabolism phenotypes. Where genetic information was reported as SNPs, we used information from PyPGx to identify the genetic variants that characterise PharmGKB alleles. Analyses were excluded where CYP metabolism phenotypes were inferred using non-genetic approaches, or where SNPs were not aligned with pharmacogenomic star allele definitions. We were unable to resolve metabolism phenotypes for 420 analyses.
+
+When reviewing the SNP-to-allele table for CYP2D6, we noted many studies in our meta-analysis called CYP2D6\*10 based on a single SNP (rs1065852), despite that SNP being found in multiple CYP2D6 star alleles. This definition is a simplification of the allelic landscape of CYP2D6 but has been noted before as common throughout the pharmacogenomics literature (Nofziger et al. 2020). In an effort to best standardise pharmacogenomic allele calling across our meta-analysis, we have chosen to assign CYP2D6*10 alleles, and where possible CYP2D6 metabolism phenotypes, using solely rs1065852. We acknowledge this is a potential limitation of our study, caused by a common practice that should be addressed by future studies. The retrieval date of the PharmGKB/PyPGx tables was 17/07/2025. 
+
+
+<br>
+<br>
+
+##### CYP1A2
+
+Gene-specific information tables are not available for this gene; therefore, allele definitions and functions were taken from the PyPGx information tables. There is no current consensus regarding the mapping of star alleles to metabolism phenotypes for CYP1A2 (Fekete et al. 2022; Kuhn et al. 2025), therefore pharmacogenomic information has been in the format of star allele diplotypes.
+
+| **SNP**                        | **Allele** | **Function**       | **Source** |
+| ------------------------------ | ---------- | ------------------ | ---------- |
+| \-                             | \*1A       | Normal Function    | PyPGx      |
+| rs2069514 (-2964G>A; -3860G>A) | \*1C       | Decreased Function | PyPGx      |
+| rs762551 (-173C>A; 163C>A)     | \*1F       | Increased function | PyPGx      |
+
+Supplementary Table 2. Functions of CYP1A2 SNPs and pharmacogenomic alleles referenced in the studies curated for this meta-analysis.
+
+<br>
+<br>
+
+##### CYP2B6
+PharmGKB gene-specific information tables are available and have been used in the present study. Metabolism phenotypes were determined based on the functionality of alleles in the diplotype.  
+
+| **SNPs**             | **Allele** | **Function**       | **Source**      |
+| -------------------- | ---------- | ------------------ | --------------- |
+| \-                   | \*1        | Normal function    | PyPGx, PharmGKB |
+| rs3745274, rs2279343 | \*6        | Decreased function | PyPGx, PharmGKB |
+| rs3745274            | \*9        | Decreased function | PyPGx, PharmGKB |
+
+Supplementary Table 3. Functions of CYP2B6 SNPs and pharmacogenomic alleles referenced in the studies curated for this meta-analysis.
+
+<br>
+<br>
+
+| **Diplotype** | **Metabolism Phenotype** | **Source**      |
+| ------------- | ------------------------ | --------------- |
+| \*1/\*1       | Normal Metabolizer       | PyPGx, PharmGKB |
+| \*1/\*6       | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*6/\*6       | Poor Metabolizer         | PyPGx, PharmGKB |
+| \*6/\*9       | Poor Metabolizer         | PyPGx, PharmGKB |
+
+Supplementary Table 4. Metabolism phenotypes for CYP2B6 diplotypes referenced in the studies curated for this meta-analysis. 
+
+<br>
+<br>
+
+##### CYP2C9
+PharmGKB gene-specific information tables were available and have been used in the present study. Metabolism phenotypes were determined based on the functionality of alleles in the diplotype, and by extension the total activity score.  
+
+*	Poor Metaboliser is assigned to those with activity scores 0 <= score < 1.
+*	Intermediate Metaboliser is assigned to those with activity scores 1 <= score < 2.
+*	Normal Metaboliser is assigned to those with activity scores 2 == score.
+
+| **Allele** | **Function**       | **Activity Score** | **Source**      |
+| ---------- | ------------------ | ------------------ | --------------- |
+| \*1        | Normal function    | 1                  | PyPGx, PharmGKB |
+| \*2        | Decreased function | 0.5                | PyPGx, PharmGKB |
+| \*3        | Null function      | 0                  | PyPGx, PharmGKB |
+
+Supplementary Table 5. Functions of CYP2C9 pharmacogenomic alleles referenced in the studies curated for this meta-analysis.
+
+<br>
+<br>
+
+| **Diplotype** | **Metabolism Phenotype** | **Total Activity Score** | **Source**      |
+| ------------- | ------------------------ | ------------------------ | --------------- |
+| \*1/\*1       | Normal metaboliser       | 2                        | PyPGx, PharmGKB |
+| \*1/\*2       | Intermediate metaboliser | 1.5                      | PyPGx, PharmGKB |
+| \*1/\*3       | Intermediate metaboliser | 1                        | PyPGx, PharmGKB |
+| \*2/\*2       | Intermediate metaboliser | 1                        | PyPGx, PharmGKB |
+| \*2/\*3       | Poor metaboliser         | 0.5                      | PyPGx, PharmGKB |
+| \*3/\*3       | Poor metaboliser         | 0                        | PyPGx, PharmGKB |
+
+Supplementary Table 6. Metabolism phenotypes for CYP2C9 diplotypes referenced in the studies curated for this meta-analysis. 
+
+<br>
+<br>
+
+##### CYP2C19
+PharmGKB gene-specific information tables were available and have been used in the present study. Metabolism phenotypes were determined based on the functionality of alleles in the diplotype. 
+
+| **SNPs**              | **Allele** | **Function**       | **Source**      |
+| --------------------- | ---------- | ------------------ | --------------- |
+| **\-**                | \*1        | Normal function    | PyPGx, PharmGKB |
+| rs4244285, rs12769205 | \*2        | Null function      | PyPGx, PharmGKB |
+| rs4986893             | \*3        | Null function      | PyPGx, PharmGKB |
+|                       | \*4        | Null function      | PyPGx, PharmGKB |
+|                       | \*5        | Null function      | PyPGx, PharmGKB |
+|                       | \*6        | Null function      | PyPGx, PharmGKB |
+| rs12248560            | \*17       | Increased function | PyPGx, PharmGKB |
+
+Supplementary Table 7. Functions of CYP2C19 SNPs and pharmacogenomic alleles referenced in the studies curated for this meta-analysis.
+
+<br>
+<br>
+
+| **Diplotype** | **Metabolism Phenotype** | **Source**      |
+| ------------- | ------------------------ | --------------- |
+| \*1/\*1       | Normal Metabolizer       | PyPGx, PharmGKB |
+| \*1/\*2       | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*1/\*3       | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*1/\*4       | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*1/\*5       | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*1/\*6       | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*1/\*17      | Rapid Metaboliser        | PyPGx, PharmGKB |
+| \*2/\*2       | Poor Metabolizer         | PyPGx, PharmGKB |
+| \*2/\*3       | Poor Metabolizer         | PyPGx, PharmGKB |
+| \*2/\*4       | Poor Metabolizer         | PyPGx, PharmGKB |
+| \*2/\*17      | Intermediate Metabolizer | PyPGx, PharmGKB |
+| \*3/\*3       | Poor Metabolizer         | PyPGx, PharmGKB |
+| \*17/\*17     | Ultrarapid Metaboliser   | PyPGx, PharmGKB |
+
+Supplementary Table 8. Metabolism phenotypes for CYP2C19 diplotypes referenced in the studies curated for this meta-analysis. 
+
+<br>
+<br>
+
+##### CYP2D6
+PharmGKB gene-specific information tables were available and have been used in the present study Metabolism phenotypes are determined based on the functionality of alleles, via their activity scores, in the diplotype as follows: 
+
+*	Poor Metaboliser is assigned to those with activity scores 0 <= score < 0.25.
+*	Intermediate Metaboliser is assigned to those with activity scores 0.25 <= score < 1.25.
+*	Normal Metaboliser is assigned to those with activity scores 1.25 <= score < 2.5.
+*	Ultrarapid Metaboliser is assigned to those with activity scores 2.5 <= score.
+
+| **SNP**               | **Allele** | **Activity Score** | **Function**       | **Source**      |
+| --------------------- | ---------- | ------------------ | ------------------ | --------------- |
+| \-                    | \*1        | 1                  | Normal Function    | PyPGx, PharmGKB |
+| \-                    | \*1x2      | 2.0                | Increased function | PharmGKB        |
+|                       | \*2        | 1.0                | Normal function    | PyPGx, PharmGKB |
+| rs35742686            | \*3        | 0                  | Null Function      | PyPGx, PharmGKB |
+| rs3892097 (1846G>A)   | \*4        | 0                  | Null Function      | PyPGx, PharmGKB |
+|                       | \*5        | 0                  | Null Function      | PyPGx, PharmGKB |
+|                       | \*6        | 0                  | Null Function      | PyPGx, PharmGKB |
+|                       | \*7        | 0                  | Null Function      | PyPGx, PharmGKB |
+|                       | \*8        | 0                  | Null Function      | PyPGx, PharmGKB |
+| rs1065852             | \*10       | 0.25               | Decreased          | PyPGx, PharmGKB |
+| rs5030865<sup>†</sup> | \*14       | 0.5                | Decreased          | PyPGx, PharmGKB |
+| <sup>††</sup>         | \*41       | 0.25               | Decreased          | PharmGKB        |
+
+Supplementary Table 9. Functions of CYP2D6 SNPs and pharmacogenomic alleles referenced in the studies curated for this meta-analysis. †T allele reflects CYP2D6\*14, whereas A allele at this location reflects CYP2D6\*8. ††Activity scores for \*41 conflict between PyPGx (0.5) and PharmGKB (0.25). PharmGKB is the newest so was used for the present study. 
+
+<br>
+<br>
+
+
+| **Diplotype** | **Total Activity Score** | **Metabolism Phenotype** | **Source** |
+| ------------- | ------------------------ | ------------------------ | ---------- |
+| \*1/\*1       | 2                        | Normal Metaboliser       | PharmGKB   |
+| \*1/\*2       | 2                        | Normal Metaboliser       | PharmGKB   |
+| \*1/\*3       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*1/\*4       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*1/\*5       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*1/\*6       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*1/\*7       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*1/\*8       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*1/\*10      | 1.25                     | Normal Metaboliser       | PharmGKB   |
+| \*1/\*41      | 1.25                     | Normal Metaboliser       | PharmGKB   |
+| \*1/(\*1x2)   | 3                        | Ultrarapid metaboliser   | PharmGKB   |
+| \*1/(\*1xN)   | \> 2                     | Ultrarapid metaboliser   | PharmGKB   |
+| \*1/(\*2xN)   | \> 2                     | Ultrarapid metaboliser   | PharmGKB   |
+| \*2/\*2       | 2                        | Normal Metaboliser       | PharmGKB   |
+| \*2/\*3       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*2/\*5       | 1                        | Intermediate Metaboliser | PharmGKB   |
+| \*2/\*10      | 1.25                     | Normal Metaboliser       | PharmGKB   |
+| \*2/\*41      | 1.25                     | Normal Metaboliser       | PharmGKB   |
+| \*3/\*4       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*3/\*5       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*4/\*4       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*4/\*5       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*4/\*6       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*4/\*10      | 0.25                     | Intermediate Metaboliser | PharmGKB   |
+| \*4/\*14      | 0.5                      | Intermediate Metaboliser | PharmGKB   |
+| (2x\*1)/\*4   | 2                        | Normal Metaboliser       | PharmGKB   |
+| \*5/\*6       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*5/\*10      | 0.25                     | Intermediate Metaboliser | PharmGKB   |
+| \*6/\*6       | 0                        | Poor Metaboliser         | PharmGKB   |
+| \*10/\*10     | 0.5                      | Intermediate Metaboliser | PharmGKB   |
+| \*10/\*41     | 0.5                      | Intermediate Metaboliser | PharmGKB   |
+
+Supplementary Table 10. Metabolism phenotypes for CYP2D6 diplotypes referenced in the studies curated for this meta-analysis.
+ 
+<br>
+<br>
+
+##### CYP3A4
+PharmGKB gene-specific information tables were available and have been used in the present study. There is no information regarding genotype to metabolism phenotype conversion and so genetic information was retained in its original format. are determined based on the functionality of alleles in the diplotype.
+
+|           | **Allele** | **Function**     | **Source** |
+| --------- | ---------- | ---------------- | ---------- |
+|           | \*1        | Normal Function  | PyPGx      |
+| rs2740574 | \*1B       | Unknown Function | PharmGKB   |
+|           | \*22       | Unknown Function | PyPGx      |
+
+Supplementary Table 11. Functions of CYP3A4 SNPs and pharmacogenomic alleles referenced in the studies curated for this meta-analysis.
+
+<br>
+<br>
+
+##### CYP3A5
+PharmGKB gene-specific information tables were available and have been used in the present study. Metabolism phenotypes are determined based on the functionality of alleles in the diplotype.
+
+| **Allele** | **Function**    | **Source** |
+| ---------- | --------------- | ---------- |
+| \*1        | Normal function | PyPGx      |
+| \*3        | Null function   | PyPGx      |
+| \*6        | Null function   | PyPGx      |
+
+Supplementary Table 12. Functions of CYP3A5 pharmacogenomic alleles referenced in the studies curated for this meta-analysis.
+
+<br>
+<br>
+
+| **Diplotype** | **Metabolism Phenotype** | **Source** |
+| ------------- | ------------------------ | ---------- |
+| \*1/\*1       | Normal Metaboliser       | PyPGx      |
+| \*1/\*3       | Intermediate Metaboliser | PyPGx      |
+| \*1/\*6       | Intermediate Metaboliser | PyPGx      |
+| \*3/\*3       | Poor Metaboliser         | PyPGx      |
+| \*3/\*6       | Poor Metaboliser         | PyPGx      |
+| \*6/\*6       | Poor Metaboliser         | PyPGx      |
+
+Supplementary Table 13. Metabolism phenotypes for CYP3A5 diplotypes referenced in the studies curated for this meta-analysis. 
+
+<br>
+<br>
+<br>
+<br>
+
+## <strong> Supplementary Results </strong> {.tabset}
+### Bayesian Re-Analysis 
+#### Addressing “winner’s curse” in psychiatric pharmacogenomic studies.
+```{r bayseian set up, warning=FALSE}
+#### Load and process z-scores ####
+proximal <- all_smd %>% filter(rating=="Proximal") %>% select(Study,z,SMD,SE)
+distal <- all_smd %>% filter(rating=="Distal") %>% select(Study,z,SMD,SE)
+                   
+#### Fit a mixture of normal distributions to the data (i.e. modelling the centre and the tails separately) ####
+# Code adapted from https://doi.org/10.1080/00031305.2021.1938225
+
+# Proximal effects
+proximal.fit=flexmix(z ~ 0|Study, data=proximal, k = 2)
+for (i in 1:10){ # try few restarts
+  tmp.fit=flexmix(z ~ 0|Study, data=proximal, k = 2)
+  if (tmp.fit@logLik > proximal.fit@logLik) proximal.fit = tmp.fit
+}
+proximal.p=summary(proximal.fit)@comptab$prior
+proximal.ind=order(parameters(proximal.fit))
+proximal.sd1=parameters(proximal.fit)[proximal.ind[1]]
+proximal.sd2=parameters(proximal.fit)[proximal.ind[2]]
+proximal.p=proximal.p[proximal.ind[1]]
+#cat("distr of z: p=",proximal.p,"\t sd1=",proximal.sd1,"\t sd2=",proximal.sd2,"\n")
+proximal.tau1=sqrt(proximal.sd1^2 - 1)
+proximal.tau2=sqrt(proximal.sd2^2 - 1)
+#cat("distr of snr: p=",proximal.p,"\t tau1=",proximal.tau1,"\t tau2=",proximal.tau2,"\n")
+
+# Distal effects
+distal.fit=flexmix(z ~ 0|Study, data=distal, k = 2)
+for (i in 1:10){ # try few restarts
+  tmp.fit=flexmix(z ~ 0|Study, data=distal, k = 2)
+  if (tmp.fit@logLik > distal.fit@logLik) distal.fit = tmp.fit
+}
+distal.p=summary(distal.fit)@comptab$prior
+distal.ind=order(parameters(distal.fit))
+distal.sd1=parameters(distal.fit)[distal.ind[1]]
+distal.sd2=parameters(distal.fit)[distal.ind[2]]
+distal.p=distal.p[distal.ind[1]]
+#cat("distr of z: p=",distal.p,"\t sd1=",distal.sd1,"\t sd2=",distal.sd2,"\n")
+distal.tau1=sqrt(distal.sd1^2 - 1)
+distal.tau2=sqrt(distal.sd2^2 - 1)
+#cat("distr of snr: p=",distal.p,"\t tau1=",distal.tau1,"\t tau2=",distal.tau2,"\n")
+
+```
+
+The dataset compiled for this work can also be used to evaluate the results of psychiatric pharmacogenomic studies through a Bayesian perspective. Following a general procedure described by van Zwet and Gelman (2022), information from a corpus of existing studies can be used to estimate the degree of potential inflation in a novel result, a phenomenon that often leads to poor replicability known as “winner’s curse” (Zöllner and Pritchard 2007; Ioannidis 2008; van Zwet and Cator 2021). Briefly, this requires modelling a prior distribution of signal-to-noise ratios using reported z-scores. Then, for any new result in the form of regression coefficients and variances, this prior can be used to derive a posterior expectation of unbiased effects (van Zwet and Gelman 2022), assuming the new study is exchangeable with other studies in the corpus (i.e. fits a set of inclusion criteria, in our case focusing on psychiatric medications, CYP metaboliser phenotypes, and an outcome that can be categorised as either “proximal” or “distal”). Such a Bayesian reanalysis of frequentist test results has similarities with regression regularisation procedures (Bickel et al. 2006), but without the need for raw data, making it particularly useful to critically assess published evidence when undertaking translational research (Kraft 2008; van Zwet et al. 2021).
+
+```{r generate plots, warning=FALSE}
+#### PROX-DIST DISTR Comparison plot ####
+x=seq(-10,10,0.01)
+breaks=seq(-10,10,length=31)
+
+proximal.f=proximal.p*dnorm(x,0,proximal.sd1) + (1-proximal.p)*dnorm(x,0,proximal.sd2)
+proximal.df1=data.frame(z=proximal$z)
+proximal.df2=data.frame(z=x,f=proximal.f)
+
+combined.p1=ggplot(proximal.df1,aes(x=z)) +
+   geom_histogram(aes(y=..density..),breaks=breaks, colour="#c8656c", fill="#e4959a") +
+   geom_line(data=proximal.df2,aes(x=z,y=f), linewidth = 1.5, linetype = "dotdash", colour = "#975b60")+
+   labs(x='',y='') +
+   coord_cartesian(xlim=c(-10,10))+ ylim(0,0.325)+ theme_minimal()+
+   ggtitle(paste0("Proximal z-scores (n=", nrow(proximal),")")) + 
+   xlab("Standardised Mean Difference") +
+   ylab("Density") +
+    theme(plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+
+distal.f=distal.p*dnorm(x,0,distal.sd1) + (1-distal.p)*dnorm(x,0,distal.sd2)
+distal.df1=data.frame(z=distal$z)
+distal.df2=data.frame(z=x,f=distal.f)
+
+combined.p2=ggplot(distal.df1,aes(x=z)) +
+  geom_histogram(aes(y=..density..),breaks=breaks, colour="#3c5256", fill="#43919c") +
+  geom_line(data=distal.df2,aes(x=z,y=f), linewidth = 1.5, linetype = "dotdash", colour = "#3c5256")+
+  labs(x='',y='') +
+  coord_cartesian(xlim=c(-10,10))+ ylim(0,0.325)+ theme_minimal()+
+   ggtitle(paste0("Distal z-scores (n=", nrow(distal),")")) + 
+  xlab("Standardised Mean Difference") +
+  ylab("Density") +
+    theme(plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+#### SNR and shrinkage ####
+
+# Custom functions
+posterior = function(b,s,p,tau){
+  z=b/s
+  tau2=tau^2
+  q=p*dnorm(z,0,sqrt(tau2+1))
+  q=q/sum(q) # conditional mixing probs
+  pm=b*tau2/(tau2+1) # conditional means
+  pv=s^2*tau2/(tau2+1) # conditional variances
+  ps=sqrt(pv) # conditional std devs
+  data.frame(q,pm,pv,ps)
+}
+shrink = function(b,s,p,tau){
+  post=posterior(b,s,p,tau)
+  b/sum(post$q * post$pm)
+}
+
+# Distribution of the SNR
+x=seq(-10,10,0.01)
+n=length(x)
+
+pal <- c("#43919c", "#e4959a")
+
+
+proximal.f2=proximal.p*dnorm(x,0,proximal.tau1) + (1-proximal.p)*dnorm(x,0,proximal.tau2)
+distal.f2=distal.p*dnorm(x,0,distal.tau1) + (1-distal.p)*dnorm(x,0,distal.tau2)
+combined.df=data.frame(x=rep(x,2),f=c(proximal.f2,distal.f2),corpus=c(rep("Proximal",n),rep("Distal",n)))
+
+combined.p3=ggplot(combined.df,aes(x=x,y=f,color=corpus)) + geom_line(show=FALSE, linewidth = 1.5) +
+           # scale_size_manual( values = c(1.5,1.5) ) +
+            scale_colour_manual(values = pal) +
+            labs(x='Standardised Mean Difference',y='Density') +
+            ggtitle("Estimated Distribution of the SNR") + theme_minimal() +
+    theme(plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+z=seq(-5,5,0.01)
+n2=length(z)
+
+proximal.shrink=sapply(z,function(z){shrink(b=z,s=1,p=c(proximal.p,1-proximal.p),tau=c(proximal.tau1,proximal.tau2))})
+distal.shrink=sapply(z,function(z){shrink(b=z,s=1,p=c(distal.p,1-distal.p),tau=c(distal.tau1,distal.tau2))})
+combined.df2=data.frame(z=rep(z,2),shrink=c(proximal.shrink,distal.shrink),corpus=c(rep("Proximal",n2),rep("Distal",n2)))
+
+combined.p4=ggplot(combined.df2,aes(x=z,y=shrink,color=corpus)) + geom_line(linewidth = 1.5) +
+            #scale_size_manual(values = c(1.5, 1.5) ) +
+            scale_colour_manual(values = pal) +
+            labs(x='z-score',y='Shrinkage Factor', colour = "Outcome") +
+            theme_minimal() +
+            scale_y_continuous(breaks = seq(1,3,0.5),minor_breaks=seq(1,3,0.25),
+                               limits = c(1,3)) +
+            ggtitle("Shrinkage factor") +
+    theme(plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+
+```
+
+```{r shrinkmeans}
+msp <- round(mean(proximal.shrink, na.rm = T),2)
+msd <- round(mean(distal.shrink, na.rm = T),2)
+```
+
+
+```{r shrinkage and estonian biobank results}
+
+# Custom functions
+# pdf, cdf and quantile functions for normal mixture distributions 
+dmix = function (x,p,m,s){ # density (vector x)
+       p %*% sapply (x, function (x) dnorm (x,mean=m,sd=s)) }
+pmix = function (x,p,m,s){ # cumulative distr (vector x)
+       p %*% sapply (x, function (x) pnorm (x,mean=m,sd=s)) }
+rmix = function (n,p,m,s){ d= rmultinom (n,1,p)
+       rnorm (n,m %*% d,s %*% d) }
+qfun = function (q,p,m,s){ # quantile function scalar q
+       uniroot ( function (x) pmix (x,p,m,s) - q, interval= c ( - 20,20)) $ root }
+qmix = function (q,p,m,s){ # quantile function vector q
+       sapply (q, function (q) qfun (q,p=p,m=m,s=s) ) } 
+
+# Z-score distribution parameters for distal outcomes
+distal.pvec=c(distal.p,1-distal.p) # Mixture proportions
+distal.tauvec=c(distal.tau1,distal.tau2) # Standard deviation of the mixture components
+
+# New Estonian Biobank study (https://doi.org/10.1038/s41431-025-01894-x)
+# CYP2C19 PM vs NM for Total ADRs after antidepressant prescription
+ee.b<-log(1.4852150406401) # Original beta (ST6)
+ee.s<-0.160236550068608 # Original SE (ST6)
+ee.post=posterior(ee.b,ee.s,distal.pvec,distal.tauvec) # Posterior distribution of effects (regularized)
+ee.betahat=sum(ee.post$q * ee.post$pm)
+new.or <- exp(ee.betahat) # Posterior mean of the OR
+ee.shrinkage=ee.b/ee.betahat # Shrinkage factor
+ee.ci2=qmix(c(0.025,0.975),ee.post$q,ee.post$pm,ee.post$ps) 
+new.ci <- exp(ee.ci2) # Posterior CI of the OR
+ee.psign <- pmix(0,ee.post$q,ee.post$pm,ee.post$ps) # Probability of sign error
+ee.prob <- 1 - ee.psign # Probability sign is correct
+```
+
+We exemplify this procedure by re-analysing a result from a large-scale pharmacogenomic study of 9,563 antidepressant users (escitalopram, citalopram, sertraline or amitriptyline) published after the end date of our literature search (Kariis et al. 2025). The analysis of this cohort showed CYP2C19 poor metabolisers to have an increased risk of reporting adverse effects, a result consistent with existing pharmacogenomic drug-gene guidelines (Brouwer et al. 2022; Bousman et al. 2023). The reported effect for this association is OR = `r round(exp(ee.b), 3)` (95%CI=1.087–2.038). ). From our corpus of results of distal outcomes without filtering by drug or gene (`r length(unique(distal$Study))` studies,`r nrow(distal)` effect sizes), we modelled a two-component mixture of zero-mean normal distributions using the *flexmix* R package (Leisch 2004), using the study ID as a grouping factor. This distribution is a prior for the signal-to-noise ratio of distal outcome studies, and an equivalent prior for reports of proximal outcomes (`r length(unique(proximal$Study))` studies, `r nrow(proximal)` effect sizes) is illustrated for comparison (Supplementary Figure 1). The mixture distribution for distal outcomes had SD1=`r round(distal.tauvec[[1]],3)` and SD2=`r round(distal.tauvec[[2]],3)`, with mixture weights W1=`r round(distal.pvec[1], 3)` and W2=`r round(distal.pvec[2], 3)`. Using code from van Zwet and Gelman (2022), we use these parameters and the original regression betas and standard errors to estimate a posterior mean of OR=`r round(new.or, 3)` (95%CI=`r round(new.ci[1], 3)`–`r round(new.ci[2], 3)`) for the pharmacogenomic result above. While the magnitude of this estimate has shrunk by a factor of `r round(ee.shrinkage, 3)` to account for winner’s curse, the re-analysis still supports a `r round(ee.prob*100, 2)`% probability that CYP2C19 poor metabolism indeed increases the likelihood of reporting adverse effects in individuals prescribed certain antidepressants.  
+
+```{r plot bayesian, warning=FALSE,  out.width="100%", fig.align='center', fig.cap="Supplementary Figure 1. Panel A and B show the distribution of Z-scores observed for proximal and distal outcomes, respectively. The line represents the fitted mixtures of two zero-mean normals for both outcomes. Panel C shows the estimated distribution of the signal-to-noise ratio (SNR) for both proximal and distal outcomes. Panel D shows variation in the shrinkage factor (the ratio of estimated to original effect sizes) across z-values for proximal and distal outcomes. For a new effect size, posterior mean estimates can be calculated by dividing it by the shrinkage factor; thus, the amount of shrinkage decreases as the Shrinkage Factor approaches 1."}
+plot_grid(combined.p1, combined.p2, combined.p3,combined.p4, labels = "AUTO")
+```
+
+<br>
+<br>
+<br>
+<br>
+
+### Random Effects
+#### Assessing Random Effects Structure.
+```{r random effects structure 1, warning=FALSE}
+
+V <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = all_smd)
+
+# fit correlated and hierarchical effects model
+mod0 <- rma.mv(absmd ~ 1 + rating, 
+               V = V,
+               random = list(~ 1 | Study),
+               method = "REML", test = "t", dfs = 'contain',
+               data = all_smd,
+               sparse = TRUE)
+
+mod1 <- rma.mv(absmd ~ 1 + rating, 
+               V = V,
+               random = list(~ 1 | Study / es_id),
+               method = "REML", test = "t", dfs = 'contain',
+               data = all_smd,
+               sparse = TRUE)
+
+mod2 <- rma.mv(absmd ~ 1 + rating, 
+               V = V,
+               random = list(~ 1 | cohort_id / Study / es_id),
+               method = "REML", test = "t", dfs = 'contain',
+               data = all_smd,
+               sparse = TRUE)
+
+
+mod3 <- rma.mv(absmd ~ 1 + rating, 
+               V = V,
+               random = list(~ 1 | es_id, ~ rating | Study),
+               method = "REML", test = "t", dfs = 'contain',
+               data = all_smd, struct = "UN",
+               sparse = TRUE)
+
+# secondary analysis
+V <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = meta.dat.all)
+
+mod4 <- rma.mv(absmd ~ 1 + rating:mp, 
+                        V = V,
+                        random = list(~ 1 | Study / es_id),
+                        method = "REML", test = "t", dfs = 'contain',
+                        data = meta.dat.all,
+                        sparse = TRUE)
+
+
+mod5 <- rma.mv(absmd ~ 1 + rating:mp, 
+                        V = V,
+                        random = list(~ rating | Study, ~ 1 | es_id), struct = c("UN"),
+                        method = "REML", test = "t", dfs = 'contain',
+                        data = meta.dat.all,
+                        sparse = TRUE)
+
+a1 <- anova(mod0, mod1) # 1 | Study vs 1 | Study / ES ID
+a2 <- anova(mod1, mod2) # 1 | Study / ES ID vs  1 | Cohort | Study / ES ID
+a3 <- anova(mod1, mod3) #  1 | Study / ES ID vs    1 | ES ID, rating | Study  
+a4 <- anova(mod4, mod5) # nested vs complex secondary analysis
+```
+
+Model structure was guided by knowledge of dependencies within the dataset, and goodness-of-fit statistics. We fit several different random effects structures allowing random intercepts for (i) Study, (ii) Study / Analysis, and (iii) Cohort / Study / Analysis. These tests were based on simplified versions of the primary model in which no variance-covariance matrix was used in place of effect size variances. Analysis of Variance suggested that model ii demonstrated better fit than model i (LRT = `r round(a1$LRT, 1)`, *p* < 0.0001). There was no significant difference between model ii, and model iii which also includes a random effect for cohort  (LRT = `r round(a2$LRT, 3)`, *p* = `r round(a2$pval, 3)`).
+
+Finally, we tested a more complex random effect structure to allow the variance components at the Study level to differ by the moderator, “rating”. Overall, this was the best fit model and so was used in the primary analysis (LRT = `r round(a3$LRT, 3)`, *p* = `r round(a3$pval, 3)`). However, this structure requires substantial data for its components to be properly estimated and so is not feasible for the sensitivity analyses on the gene-drug subgroups; therefore, we used a simplified random-effects structure for these analyses (i.e., ~1 | Study ID / Effect Size ID). For the secondary analysis which contained an interaction term between rating and metabolism phenotype, we followed the primary analysis, including a “rating| Study” term. This demonstrated better model fit than the simple nested structure (LRT = `r round(a4$LRT,3)`, *p* = `r format_p(a4$pval)`), while balancing the risk for over-parametrisation that would arise with including a term for each moderator. 
+
+Supplementary Figures 2 – 7 show profile-Likelihood plots for the variance components of the primary meta-analysis, the secondary meta-analysis, and the four sensitivity analyses. The plots do not indicate that the models are over-parametrised; the restricted log-likelihood peaks at the parameter estimates and gradually decreases on either side which suggests confidence in these estimates (as opposed to flat or bimodal profiles, which could indicate lack of parameter identifiability). 
+
+Final model structures for the various analyses are described below:
+
+i)	For the primary analysis, the absolute SMD was moderated by rating (i.e., whether the outcome was proximal or distal) and included random effect terms for Study ID (allowed to vary by rating) and Effect Size ID. 
+
+`rma.mv(absmd ~ 0 + rating, V = V, random = list(~ rating | Study, ~ 1 | es_id), struct = "UN", method = "REML", test = "t", dfs = 'contain’, data = all_smd, sparse = TRUE)`
+
+ii)	For the sensitivity analyses, the absolute SMD was moderated by rating and included a simplified random effect term for Effect Size ID nested within Study ID (example given for Risperidone-CYP2D6 analysis). 
+
+`rma.mv(absmd ~ 0 + rating, V = Vris, random = list(~ 1 | Study / es_id), method = "REML", test = "t", dfs = 'contain', data = ris_smd, sparse = TRUE)`
+
+iii)	For the secondary analysis, the absolute SMD was moderated by a rating-metabolism phenotype interaction and included random effect terms for Study ID (allowed to vary by rating) and Effect Size ID.
+
+`rma.mv(absmd ~ 0 + rating:mp, V = V, random = list(~ rating | Study, ~ 1 | es_id), struct = c("UN"), method = "REML", test = "t", dfs = 'contain', data = meta.dat.all, sparse = TRUE)`
+
+
+<br>
+<br>
+<br>
+<br>
+
+### Profile Plots
+#### Profile Likelihood plots for Assessing Model Over-parameterisation.
+##### Primary Analysis
+```{r primary profile plot, echo = FALSE, message=FALSE, fig.align='center', out.width="200%", fig.cap="Supplementary Figure 2. Profile likelihood plots for the variance components of the primary analysis. The X axis represents variance component estimates, with the dotted line intersecting with the X axis represents the value of the variance component as calculated by the primary model. The Y axis represents the restricted logLikelihood at each variance component estimate."}
+knitr::include_graphics("profiles/final/img/primary.png")
+```
+
+<br>
+<br>
+
+##### Profile Plots for Gene-Drug Subgroup Analyses
+The profile plots for the sensitivity analyses do not indicate that the models are over-parametrised.
+
+###### Risperidone x CYP2D6 
+```{r sensitivity 1 profile plot, echo = FALSE, message=FALSE, fig.align='center', out.width="150%", fig.cap="Supplementary Figure 3. Profile likelihood plots for the variance components of the sensitivity analysis (Risperidone and CYP2D6). The X axis represents variance component estimates, with the dotted line intersecting with the X axis represents the value of the variance component as calculated by the primary model. The Y axis represents the restricted logLikelihood at each variance component estimate."}
+knitr::include_graphics("profiles/final/img/ris.png")
+```
+
+<br>
+<br>
+
+###### Escitalopram x CYP2C19 
+```{r sensitivity 2 profile plot, echo = FALSE, message=FALSE, fig.align='center',  out.width="150%", fig.cap="Supplementary Figure 4. Profile likelihood plots for the variance components of the sensitivity analysis (Escitalopram and CYP2C19). The X axis represents variance component estimates, with the dotted line intersecting with the X axis represents the value of the variance component as calculated by the primary model. The Y axis represents the restricted logLikelihood at each variance component estimate."}
+knitr::include_graphics("profiles/final/img/esc.png")
+```
+
+<br>
+<br>
+
+###### Aripiprazole x CYP2D6
+```{r sensitivity 5 profile plot, echo = FALSE, message=FALSE, fig.align='center',  out.width="150%", fig.cap="Supplementary Figure 5. Profile likelihood plots for the variance components of the sensitivity analysis (Aripiprazole and CYP2D6). The X axis represents variance component estimates, with the dotted line intersecting with the X axis represents the value of the variance component as calculated by the primary model. The Y axis represents the restricted logLikelihood at each variance component estimate."}
+knitr::include_graphics("profiles/final/img/ari.png")
+```
+
+<br>
+<br>
+
+###### Haloperidol x CYP2D6 
+```{r sensitivity 6 profile plot, echo = FALSE, message=FALSE, fig.align='center',  out.width="150%", fig.cap="Supplementary Figure 7. Profile likelihood plots for the variance components of the sensitivity analysis (Haloperidol and CYP2D6). The X axis represents variance component estimates, with the dotted line intersecting with the X axis represents the value of the variance component as calculated by the primary model. The Y axis represents the restricted logLikelihood at each variance component estimate."}
+knitr::include_graphics("profiles/final/img/hal.png")
+```
+
+<br>
+<br>
+
+##### Secondary Analysis
+```{r secondary profile plot, echo = FALSE, message=FALSE, fig.align='center', out.width="200%", fig.cap="Supplementary Figure 7. Profile likelihood plots for the variance components of the secondary analysis. The X axis represents variance component estimates, with the dotted line intersecting with the X axis represents the value of the variance component as calculated by the secondary model. The Y axis represents the restricted logLikelihood at each variance component estimate."}
+knitr::include_graphics("profiles/final/img/secondary.png")
+```
+
+<br>
+<br>
+<br>
+<br>
+
+### VCOV matrix
+#### Approximating the Variance-Covariance matrix using different values of ρ.
+To account for dependencies in our data, we imputed a variance-covariance matrix and use this in place of effect size variances or standard errors as the variance argument in our meta-analysis. In the absence of information regarding correlations in raw data, we used ρ = 0.6 (i.e.  assuming sampling correlation of 0.6 between effects of the same study) to impute the matrix used in our primary analysis as suggested in previous work (Pustejovsky and Tipton 2022). 
+
+As a sensitivity analysis, we tested how our effect estimates were affected by assuming different sampling correlations (i.e., changing the value of ρ, from 0 to 0.95 at intervals of 0.05). We plot the estimate and confidence intervals for the difference between proximal and distal outcomes (Supplementary Figure 8), as well as examining the variance components (i.e., σ^2^, τ^2.1^, τ^2.2^ as in Supplementary Figure 9). Overall, there is little effect of changing the assumed sampling correlation, ρ, on key model coefficients or variance components. 
+
+
+```{r load dat for sensitivity vcov, include = FALSE, echo=FALSE,warning=FALSE}
+sens1 <- read_table(file = "profiles/final/coefs.txt")
+sens2 <- read_table(file = "profiles/final/var.txt")
+
+df <- cbind(sens1, sens2)
+```
+
+```{r robust variance estimator plot 1, warning=FALSE, echo = FALSE, fig.align='center', fig.cap="Supplementary Figure 8. Estimates for the difference between proximal and distal effect sizes are plotted at each value of the assumed constant sampling correlation (ρ) in the imputation of the variance-covariance matrix for the primary meta-analysis. The vertical dashed line represents ρ = 0.6, the value recommended in Pustejovsky and Tipton (2022). Estimates are from an intercept model. Shaded area represents robust 95% confidence intervals around the estimates."}
+ 
+ggplot(data=df, aes(x=p, y=Estimate)) +
+  geom_point() +
+  geom_line(linewidth = 2, colour = "orchid" ) +
+  geom_ribbon(aes(ymin=CI_L, ymax=CI_U), linetype=0, alpha=0.1, fill = "darkorchid4") +
+ # scale_fill_manual(values = pal) +
+  geom_vline(xintercept = 0.6, linetype = "dashed") +
+  coord_cartesian(xlim = c(0,1), ylim = c(-0.5,0)) +
+  xlab("Assumed sampling correlation (ρ)") +
+  ylab("Effect Size") +
+  theme_minimal() +
+    theme(legend.title=element_blank(),
+        axis.title = element_text(colour = "#474044", size = 14),
+            axis.text.x = element_text(colour = "#474044", size = 11),
+            axis.text.y = element_text(colour = "#474044", size = 11, hjust = 0.5),
+            axis.ticks = element_line(colour = "#474044"),
+            plot.title = element_text(colour = "#474044"),
+                   plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+```
+
+<br>
+<br>
+
+```{r robust variance estimator plot 2, warning=FALSE, fig.align='center', fig.cap="Supplementary Figure 9. Variance component estimates for within-study (σ2), between-study (proximal; τ2.1) and between-study (distal; τ2.2) heterogeneity from across different values of the assumed sampling correlation coefficient (ρ) in the imputation of the variance-covariance matrix for the primary meta-analysis. The vertical dashed line represents ρ = 0.6, the value recommended in Pustejovsky and Tipton (2022)."}
+pal <- c("#476A6F", "#e4959a", "#519E8A", "#474044")
+
+var_sig <- df %>% dplyr::select(Outcome, s2, t21, t22, r, p) 
+var_sig <- pivot_longer(var_sig, cols = c(s2, t21, t22, r), names_to = c("comp"))
+xlabels <- c("s2" = expression("σ"^2), "t21" = expression("τ"^2.1), "t22" = expression("τ"^2.2), "r" = expression("ρ"))
+
+ggplot(data=var_sig, aes(x = p, y=value, colour= comp)) +
+  geom_point() +
+  geom_line(linewidth = 2) +
+  #scale_colour_manual(values = pal) +
+  geom_vline(xintercept = 0.6, linetype = "dashed") +
+  coord_cartesian(xlim = c(0,1), ylim = c(-1, 1)) +
+  xlab("Assumed sampling correlation (ρ)") +
+  ylab("Variance Estimate") +
+  scale_color_discrete(pal, name = "", labels = xlabels, type = pal)+
+  guides(colour=guide_legend(title="Variance Component")) +
+  theme_minimal() +
+    theme(legend.title=element_blank(),
+        axis.title = element_text(colour = "#474044", size = 14),
+            axis.text.x = element_text(colour = "#474044", size = 11),
+            axis.text.y = element_text(colour = "#474044", size = 11, hjust = 0.5),
+            axis.ticks = element_line(colour = "#474044"),
+            plot.title = element_text(colour = "#474044"),
+                   plot.background = element_rect(fill = "#EFEFEF", colour = "#EFEFEF"), 
+            panel.background = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"),
+            legend.background = element_rect(fill="#EFEFEF",  colour = "#EFEFEF"), 
+            legend.key = element_rect(fill = "#EFEFEF",  colour = "#EFEFEF"))
+```
+
+<br>
+<br>
+<br>
+<br>
+
+### Risk of Bias
+#### Assessing Risk of Bias
+```{r multilevel eggers test}
+
+all_smd$se.eff.size <- sqrt(all_smd$Var)
+all_smd$prec <- 1/sqrt(all_smd$Total_N)
+
+# read here for interpreting output: https://stat.ethz.ch/pipermail/r-sig-meta-analysis/2018-February/000610.html
+
+# Egger's regression test can be conducted simply by using the standard errors of the effect size estimates (i.e., the "sei") as a predictor in a meta-regression. Using cluster-robust variance estimation with this meta-regression will take care of the dependence issue. A significant coefficient on the standard error predictor would indicate funnel plot asymmetry. (Although as always, a lack of statistically significance does not *prove* that the funnel plot is symmetric.) When I've used this technique, I fit the meta-regression without any random effects in the model so that larger studies are given relatively more weight for estimating the meta-regression coefficients.
+
+# The slope on sqrt(vi) indicates an association between SE and effect size. The intercept is a "PET"-style estimate of the average effect size in a population of infinitely large studies (i.e. SE = 0).
+
+# The positive relationship between effect size estimate and its standard error indicates the evidence of publicaiton bias or small study effects
+
+egger <- rma.mv(yi = absmd, 
+                 V = Var, 
+                 mods = ~ prec, 
+                 random = list(~ 1 | Study/es_id), 
+                 method = "REML", test = "t", dfs = "contain", 
+                 data = all_smd, 
+                 sparse = TRUE)
+
+egger2 <- rma.mv(yi = absmd, 
+                 V = Var, 
+                 mods = ~ prec, 
+                 random = list(~ 1 | es_id, ~ rating | Study), struct = "UN", 
+                 method = "REML", test = "t", dfs = "contain", 
+                 data = all_smd, 
+                 sparse = TRUE)
+
+
+a <- robust(egger2, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+
+```
+
+Funnel plots suggest a risk of small-study effects among the studies included in the primary meta-analysis (Supplementary Figure 10). This is supported by our results from an adapted version of Egger’s test (estimate = `r round(a$b[2],2)`, *p* = `r format_p(a$pval[2])`). Our methodology fits with current best-practice for dealing with biases, including publication bias, in similar meta-analyses (Yang et al., 2024). 
+
+```{r funnel plot, fig.align='center', dev.args=list(bg='transparent')}
+
+with(all_smd, funnel(SMD, se.eff.size, 
+                     yaxis = "sei", 
+                     level=c(90, 95, 99), shade=c("white", "gray55", "gray75"), 
+                     legend=F,
+                     xlab = "Standardized mean difference (SMD)", ylab = "SE", back = "#EFEFEF")) 
+
+with(all_smd, funnel(SMD, prec, 
+                     level=c(90, 95, 99), shade=c("white", "gray55", "gray75"), 
+                     legend=F,
+                     xlab = "Standardized mean difference (SMD)", ylab = expression(1/sqrt(N)), back = "#EFEFEF"))
+
+```
+
+Supplementary Figure 10. Upper plot demonstrates a traditional funnel plot of the effect measure against the standard error. Lower plot demonstrates a funnel plot of the effect measure against a sample-size based measure of precision, as recommended for meta-analyses using the Standardised Mean Difference as the effect size measure (Zwetsloot et al. 2017).
+
+<br>
+<br>
+<br>
+<br>
+
+### Sensitivity Analyses
+#### No-Intercept Output
+The sensitivity analysis replicated the primary model in subgroups restricted to gene-drug pairings. Full model results are detailed in Supplementary Table 14, below. The results in the manuscript represent the difference between effect sizes for proximal and distal outcomes. Here, we report estimates for proximal and distal outcomes, separately for each of the subgroup analyses.
+
+```{r all gene-drug subgrops analyses (no intercept)}
+# fit correlated and hierarchical effects model
+meta.ris <- rma.mv(absmd ~ 0 + rating, 
+                    V = Vris,
+                    random = list(~ 1 | Study / es_id),
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = ris_smd,
+                    sparse = TRUE)
+
+meta.ris <- robust(meta.ris, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+# fit correlated and hierarchical effects model
+meta.esc <- rma.mv(absmd ~ 0 + rating, 
+                    V = Vesc,
+                    random = list(~ 1 | Study / es_id),                   
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = esc_smd,
+                    sparse = TRUE)
+
+meta.esc <- robust(meta.esc, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+# fit correlated and hierarchical effects model
+meta.ari <- rma.mv(absmd ~ 0 + rating, 
+                    V = Vari,
+                    random = list(~ 1 | Study / es_id),                   
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = ari_smd,
+                    sparse = TRUE)
+
+meta.ari <- robust(meta.ari, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+# fit correlated and hierarchical effects model
+meta.hal <- rma.mv(absmd ~ 0 + rating, 
+                    V = Vhal,
+                    random = list(~ 1 | Study / es_id),
+                    method = "REML", test = "t", dfs = 'contain',
+                    data = hal_smd,
+                    sparse = TRUE)
+
+meta.hal <- robust(meta.hal, cluster = Study, adjust = "CR2", clubSandwich = T)
+
+```
+
+
+```{r sensitivity full output}
+a <- broom::tidy(meta.ris)
+df <- a %>% dplyr::select(c("term", "estimate", "std.error", "p.value"))
+df$p.value <- format_p(df$p.value)
+a <- df 
+a$Subgroup <- "CYP2D6 - Risperidone"
+
+b <- broom::tidy(meta.esc)
+df <- b %>% dplyr::select(c("term", "estimate", "std.error", "p.value"))
+df$p.value <- format_p(df$p.value)
+b <- df 
+b$Subgroup <- "CYP2C19 - Escitalopram"
+
+c <- broom::tidy(meta.ari)
+df <- c %>% dplyr::select(c("term", "estimate", "std.error", "p.value"))
+df$p.value <- format_p(df$p.value)
+c <- df 
+c$Subgroup <- "CYP2D6 - Aripiprazole"
+
+d <- broom::tidy(meta.hal)
+df <- d %>% dplyr::select(c("term", "estimate", "std.error", "p.value"))
+df$p.value <- format_p(df$p.value)
+d <- df 
+d$Subgroup <- "CYP2D6 - Haloperidol"
+
+df <- rbind(a,b,c,d)
+df$term[df$term == "ratingProximal"] <- "Proximal"
+df$term[df$term == "ratingDistal"] <- "Distal"
+
+df <- dplyr::select(df, c("Subgroup", "term", "estimate", "std.error", "p.value"))
+
+DT::datatable(df, colnames = c("Subgroup","Outcome", "Estimate", "Standard Error", "p value"), rownames = FALSE, caption = "Supplementary Table 14. Results from sensitivity analyses (no-intercept models) testing whether pharmacogenomic effect sizes are moderated by outcome type across gene-drug pairings.", options = list(
+  info = FALSE,
+  paging = FALSE,
+  searching = FALSE
+)) %>% DT::formatRound(columns = c('estimate', 'std.error'), digits = 4)
+```
+
+<br>
+<br>
+<br>
+<br>
+
+### Secondary Analysis
+#### Full Model Output
+The secondary analysis expanded on the primary model by including an interaction term between outcome type (proximal vs distal) and metabolism phenotype (poor, intermediate, rapid, and ultra-rapid). An unstructured variance structure allowed between-study heterogeneity to vary across proximal and distal outcomes. Full model results are detailed in Supplementary Table 15, below. 
+
+```{r secondary full output}
+a <- broom::tidy(meta.int)
+df <- a %>% dplyr::select(c("term", "estimate", "std.error", "p.value"))
+
+df$p.value <- format_p(df$p.value)
+
+DT::datatable(df, colnames = c("Interaction", "Estimate", "Standard Error", "p value"), rownames = FALSE, caption = "Supplementary Table 15. Full results from secondary analysis testing whether pharmacogenomic effect sizes are moderated by an interaction between outcome type and metabolism phenotype.", options = list(
+  info = FALSE,
+  paging = FALSE,
+  searching = FALSE
+)) %>% DT::formatRound(columns = c('estimate', 'std.error'), digits = 4)
+```
+
+<br>
+<br>
+<br>
+<br>
+
+## <strong> Supplementary References </strong> 
+### Supplementary References
+
+<br>
+<br>
+<br>
+<br>
+
+## <strong> Session Info </strong> 
+
+```{r session info}
+sessionInfo()
+```
+
+
+<br>
+<br>
+
