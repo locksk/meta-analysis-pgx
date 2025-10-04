@@ -197,7 +197,7 @@ ui <- fluidPage(
         tabPanel("About",   
                  br(),
                  h4("About."),
-                 p("This shiny dashboard allows you to explore the effect sizes calculated as part of 'Near, far, wherever you are: Phenotype-related variation in pharmacogenomic effect sizes across the psychiatric drug literature'."),
+                 p("This shiny dashboard allows you to explore the effect sizes calculated as part of 'Near, far, wherever you are: Phenotype-related variation in pharmacogenomic effect sizes across the psychiatric drug literature' (doi: 10.1101/2025.09.23.25336442)."),
                  br(),
                  h5("Visualisations."),
                  p("The sidebar allows you to filter the dataset by drug, enzyme, and outcome. Outcomes may be filtered generally (i.e., 'proximal' vs 'distal') or through a free-text search if interested in specific outcomes. Either the absolute Standardised Mean Difference (SMD) may be used to filter data, and in the meta analysis, or the untransformed SMD. Clicking the update button applies these changes to the dataset."),
@@ -463,8 +463,6 @@ server <- function(input, output, session) {
   })
   
   load("data/all_smds.RData")
-  all_smd <- dplyr::filter(all_smd, absmd <=5)
-  
   all_smd$index <- 1:nrow(all_smd)
   all_smd$url <- paste0("<a href='https://doi.org/",all_smd$doi,"' target='_blank'>",all_smd$pmid,"</a>")
   all_smd[sapply(all_smd, is.infinite)] <- NA

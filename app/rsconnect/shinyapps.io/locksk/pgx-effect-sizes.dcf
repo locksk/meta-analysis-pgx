@@ -5,7 +5,7 @@ account: locksk
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15535121
-bundleId: 10941415
+bundleId: 10990881
 url: https://locksk.shinyapps.io/pgx-effect-sizes/
 version: 1
 asMultiple: FALSE

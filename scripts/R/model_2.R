@@ -44,7 +44,7 @@ V <- metafor::vcalc(vi = Var, cluster = Study, obs = es_id, rho = 0.6, data = al
 
 mod <- rma.mv(absmd ~ 0 + rating:mp, 
                     V = V,
-                    random = list(~ rating | Study, ~ mp | Study, ~ 1 | es_id), struct = c("UN","CS"),
+                    random = list(~ rating | Study, ~ 1 | es_id), struct = "UN",
                     method = "REML", test = "t", dfs = 'contain',
                     data = all_smd,
                     sparse = TRUE)

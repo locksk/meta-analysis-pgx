@@ -6,7 +6,7 @@
 #SBATCH -p c_compute_neuro1
 #SBATCH --time=72:00:00
 #SBATCH --mem=100G
-#SBATCH --array=1-7
+#SBATCH --array=1-6
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=locksk@cardiff.ac.uk
 
