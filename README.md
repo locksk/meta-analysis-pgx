@@ -23,3 +23,6 @@
 * Meta-Analyses were fit using [metafor](https://www.metafor-project.org/doku.php/metafor) and [clubSandwich](https://jepusto.github.io/clubSandwich/), for robust variance estimation. 
 * Bayseian analysis to determine effect size shrinkage was based on [van Zwet & Gelman, 2022](https://doi.org/10.1080/00031305.2021.1938225)
 * The companion app was built using [RShiny](https://shiny.posit.co/) and hosted using [Docker](https://www.docker.com/)
+
+
+[![DOI](https://zenodo.org/badge/1062571205.svg)](https://doi.org/10.5281/zenodo.17638990)
