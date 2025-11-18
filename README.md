@@ -30,11 +30,31 @@ See [here](https://locksk.shinyapps.io/pgx-effect-sizes/) for live version of th
 
 [![DOI](https://zenodo.org/badge/1062571205.svg)](https://doi.org/10.5281/zenodo.17638990)
 
+[![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=21&a=32113&i=31110&r=023)
+
 ### Usage
 Open the [live](https://locksk.shinyapps.io/pgx-effect-sizes/)  version of the app to start browsing the data immediately. Otherwise:
 1. Clone this repository or download the project files from the most recent release.
 2. Open the app.R file in R or R Studio.
 3. Run with `shiny::runApp()` or the 'Run App >' button in R Studio. 
+
+### Dependencies
+If running locally, dependencies for the Shiny App may be installed as follows:
+`RUN R -e "install.packages(c('remotes', 'bslib',  'Cairo',  'clubSandwich',  'countrycode',  'dplyr', 'DT',  'flexmix',  'ggbeeswarm',  'gghighlight',  'ggplot2', 'ggpubr',  'gridExtra',  'gsubfn',  'hrbrthemes',  'leaflet', 'maps',  'meta',  'metafor',  'paletteer',  'plotly',  'pwr', 'RColorBrewer',  'sf',  'shiny',  'shinycssloaders',  'shinyglide', 'shinyjs',  'shinyWidgets',  'stringr',  'tidyr',  'tidytext', 'waffle',  'wordcloud2',  'dplyr',  'ggbeeswarm',  'ggplot2', 'latex2exp',  'metafor',  'scales'))"`
+
+`RUN R -e "remotes::install_github(c('daniel1noble/orchaRd', 'dreamRs/shinypop'))"`
+
+The PGx Effect Size Explorer app leans heavily on the following packages for analysis and data visualisation:
+
+* [`metafor`](https://www.metafor-project.org/doku.php/metafor)
+* [`clubSandwich`](https://github.com/jepusto/clubSandwich)
+* [`orchaRd`](https://github.com/daniel1noble/orchaRd)
+
+A similar application that analyses and visualises results from studies into CYP2D6 PGx variation and tamoxifen failure can be found [here.](https://tpahern.shinyapps.io/2d6meta/)
+
+### Cite the App
+If you want to cite the Shiny App, please use the following:
+
 
 ### Acknowledgements
 This work was funded by a PhD studentship from Mental Health Research UK.
