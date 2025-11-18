@@ -26,6 +26,8 @@
 
 ## PGx Effect Size Explorer
 See [here](https://locksk.shinyapps.io/pgx-effect-sizes/) for live version of the app. App files found within `app/` directory. 
+<br>
+
 [![DOI](https://zenodo.org/badge/1062571205.svg)](https://doi.org/10.5281/zenodo.17638990)
 
 ### Usage
