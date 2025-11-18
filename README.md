@@ -24,5 +24,15 @@
 * Bayseian analysis to determine effect size shrinkage was based on [van Zwet & Gelman, 2022](https://doi.org/10.1080/00031305.2021.1938225)
 * The companion app was built using [RShiny](https://shiny.posit.co/) and hosted using [Docker](https://www.docker.com/)
 
-
+## PGx Effect Size Explorer
+See [here](https://locksk.shinyapps.io/pgx-effect-sizes/) for live version of the app. App files found within `app/` directory. 
 [![DOI](https://zenodo.org/badge/1062571205.svg)](https://doi.org/10.5281/zenodo.17638990)
+
+### Usage
+Open the [live](https://locksk.shinyapps.io/pgx-effect-sizes/)  version of the app to start browsing the data immediately. Otherwise:
+1. Clone this repository or download the project files from the most recent release.
+2. Open the app.R file in R or R Studio.
+3. Run with `shiny::runApp()` or the 'Run App >' button in R Studio. 
+
+### Acknowledgements
+This work was funded by a PhD studentship from Mental Health Research UK.
