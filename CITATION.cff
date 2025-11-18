@@ -1,0 +1,41 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: PGx Effect Size Explorer
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Siobhan
+    family-names: Ker Lock
+    email: locksk@cardiff.ac.uk
+    affiliation: >-
+      Centre for Neuropsychiatric Genetics and Genomics,
+      Cardiff University
+    orcid: 'https://orcid.org/0009-0003-8574-8391'
+  - given-names: 'Jude '
+    family-names: Hutton
+    email: huttonj2@cardiff.ac.uk
+    affiliation: >-
+      Centre for Neuropsychiatric Genetics and
+      Genomics,       Cardiff University
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.17638990
+repository-code: 'https://github.com/locksk/meta-analysis-pgx'
+url: 'https://locksk.shinyapps.io/pgx-effect-sizes/'
+abstract: >-
+  This Shiny App is the companion dashboard to the paper:
+  Near, far, wherever you are: Phenotype-related variation
+  in pharmacogenomic effect sizes across the psychiatric
+  drug literature (doi: 10.1101/2025.09.23.25336442). 
+keywords:
+  - pharmacogenomics
+  - pgx
+  - psychiatry
+  - antidepressants
+  - antipsychotics
+  - metaanalysis
+license: CC-BY-4.0
