@@ -42,16 +42,12 @@ Open the [live](https://locksk.shinyapps.io/pgx-effect-sizes/)  version of the a
 If running locally, dependencies for the Shiny App may be installed as follows:
 
 ```
-function test() {
-  console.log("RUN R -e "install.packages(c('remotes', 'bslib',  'Cairo',  'clubSandwich',  'countrycode',  'dplyr', 'DT',  'flexmix',  'ggbeeswarm',  'gghighlight',  'ggplot2', 'ggpubr',  'gridExtra',  'gsubfn',  'hrbrthemes',  'leaflet', 'maps',  'meta',  'metafor',  'paletteer',  'plotly',  'pwr', 'RColorBrewer',  'sf',  'shiny',  'shinycssloaders',  'shinyglide', 'shinyjs',  'shinyWidgets',  'stringr',  'tidyr',  'tidytext', 'waffle',  'wordcloud2',  'dplyr',  'ggbeeswarm',  'ggplot2', 'latex2exp',  'metafor',  'scales'))"");
-}
+install.packages(c('remotes', 'bslib',  'Cairo',  'clubSandwich',  'countrycode',  'dplyr', 'DT',  'flexmix',  'ggbeeswarm',  'gghighlight',  'ggplot2', 'ggpubr',  'gridExtra',  'gsubfn',  'hrbrthemes',  'leaflet', 'maps',  'meta',  'metafor',  'paletteer',  'plotly',  'pwr', 'RColorBrewer',  'sf',  'shiny',  'shinycssloaders',  'shinyglide', 'shinyjs',  'shinyWidgets',  'stringr',  'tidyr',  'tidytext', 'waffle',  'wordcloud2',  'dplyr',  'ggbeeswarm',  'ggplot2', 'latex2exp',  'metafor',  'scales'))
 ```
 <br> 
 
 ```
-function test() {
-  console.log("RUN R -e "remotes::install_github(c('daniel1noble/orchaRd', 'dreamRs/shinypop'))"");
-}
+remotes::install_github(c('daniel1noble/orchaRd', 'dreamRs/shinypop'))
 ```
 
 
@@ -65,8 +61,27 @@ The PGx Effect Size Explorer app leans heavily on the following packages for ana
 A similar application that analyses and visualises results from studies into CYP2D6 PGx variation and tamoxifen failure can be found [here.](https://tpahern.shinyapps.io/2d6meta/)
 
 ### Cite the App
-If you want to cite the Shiny App, please use the following:
+If you want to cite the Shiny App, please use the following BibTeX:
 
+```
+@software{lock_2025_17638991,
+  author       = {Lock, Siobhan and
+                  Hutton, Jude},
+  title        = {locksk/meta-analysis-pgx: PGx Effect Size Explorer},
+  month        = nov,
+  year         = 2025,
+  publisher    = {Zenodo},
+  version      = {v1.0},
+  doi          = {10.5281/zenodo.17638991},
+  url          = {https://doi.org/10.5281/zenodo.17638991},
+  swhid        = {swh:1:dir:52722e4a9e1942461cd3bb0d14f4a620071c30af
+                   ;origin=https://doi.org/10.5281/zenodo.17638990;vi
+                   sit=swh:1:snp:958437b6c17b321e5e2c00c1c07f00707f18
+                   adb7;anchor=swh:1:rel:78533b32537c3da4bb92eae1254c
+                   cd31712a00aa;path=locksk-meta-analysis-pgx-8461940
+                  },
+}
+```
 
 ### Acknowledgements
 This work was funded by a PhD studentship from Mental Health Research UK.
