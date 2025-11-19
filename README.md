@@ -28,7 +28,7 @@
 See [here](https://locksk.shinyapps.io/pgx-effect-sizes/) for live version of the app. App files found within `app/` directory. 
 <br>
 
-[![DOI](https://zenodo.org/badge/17638991.svg)](https://doi.org/10.5281/zenodo.17638991)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17638991.svg)](https://doi.org/10.5281/zenodo.17638991)
 
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=21&a=32113&i=31110&r=023)
 
