@@ -23,7 +23,7 @@ authors:
       Genomics,       Cardiff University
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.17638990
+    value: 10.5281/zenodo.17638991
 repository-code: 'https://github.com/locksk/meta-analysis-pgx'
 url: 'https://locksk.shinyapps.io/pgx-effect-sizes/'
 abstract: >-
