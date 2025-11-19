@@ -40,9 +40,21 @@ Open the [live](https://locksk.shinyapps.io/pgx-effect-sizes/)  version of the a
 
 ### Dependencies
 If running locally, dependencies for the Shiny App may be installed as follows:
-`RUN R -e "install.packages(c('remotes', 'bslib',  'Cairo',  'clubSandwich',  'countrycode',  'dplyr', 'DT',  'flexmix',  'ggbeeswarm',  'gghighlight',  'ggplot2', 'ggpubr',  'gridExtra',  'gsubfn',  'hrbrthemes',  'leaflet', 'maps',  'meta',  'metafor',  'paletteer',  'plotly',  'pwr', 'RColorBrewer',  'sf',  'shiny',  'shinycssloaders',  'shinyglide', 'shinyjs',  'shinyWidgets',  'stringr',  'tidyr',  'tidytext', 'waffle',  'wordcloud2',  'dplyr',  'ggbeeswarm',  'ggplot2', 'latex2exp',  'metafor',  'scales'))"`
 
-`RUN R -e "remotes::install_github(c('daniel1noble/orchaRd', 'dreamRs/shinypop'))"`
+```
+function test() {
+  console.log("RUN R -e "install.packages(c('remotes', 'bslib',  'Cairo',  'clubSandwich',  'countrycode',  'dplyr', 'DT',  'flexmix',  'ggbeeswarm',  'gghighlight',  'ggplot2', 'ggpubr',  'gridExtra',  'gsubfn',  'hrbrthemes',  'leaflet', 'maps',  'meta',  'metafor',  'paletteer',  'plotly',  'pwr', 'RColorBrewer',  'sf',  'shiny',  'shinycssloaders',  'shinyglide', 'shinyjs',  'shinyWidgets',  'stringr',  'tidyr',  'tidytext', 'waffle',  'wordcloud2',  'dplyr',  'ggbeeswarm',  'ggplot2', 'latex2exp',  'metafor',  'scales'))"");
+}
+```
+<br> 
+
+```
+function test() {
+  console.log("RUN R -e "remotes::install_github(c('daniel1noble/orchaRd', 'dreamRs/shinypop'))"");
+}
+```
+
+
 
 The PGx Effect Size Explorer app leans heavily on the following packages for analysis and data visualisation:
 
